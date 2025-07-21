@@ -7,11 +7,16 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+const fs = require("fs");
+
 
 const WebSocket = require('ws');
 const wss = new WebSocket.Server({ port: 3000 });
 
 let godotClients = [];
+
+
+let clients = {};
 
 wss.on('connection', (ws) => {
   godotClients.push(ws);
@@ -33,8 +38,6 @@ wss.on('connection', function connection(ws) {
 });
 
 
-
-
 function broadcastToGodot(message) {
   const json = JSON.stringify(message);
   godotClients.forEach(ws => {
@@ -50,48 +53,105 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 
 let clientsData = {};
 
-io.on('connection', (socket) => {
-    console.log('New connection:', socket.id);
+let ping_count = 0;
 
-    socket.on('register', (type) => {
-        socket.clientType = type;
-        console.log(`Socket ${socket.id} registered as ${type}`);
+io.on("connection", (socket) => {
+  console.log("Nouveau client");
+
+  socket.on("update_pseudo", ({ id, pseudo }) => {
+    clients[id] = clients[id] || {};
+    clients[id].pseudo = pseudo;
+    socket.emit("pseudo_updated", { pseudo });
+    console.log(`pseudo_updated ${id} : ${pseudo}`);
+
+  });
+
+  socket.on("update_color", ({ id, color }) => {
+    clients[id] = clients[id] || {};
+    clients[id].color = color;
+    console.log(`Couleur reçue de ${id}`);
+  });
+
+  socket.on("action_triggered", ({ id }) => {
+    console.log("Action demandée par", id);
+    // TODO: action spécifique serveur
+  });
+
+  socket.on("selfie", ({ id, image }) => {
+    console.log(`Image reçue de ${id}`);
+
+    // Créer le dossier si nécessaire
+    const uploadDir = path.join(__dirname, "uploads");
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir);
+    }
+
+    // Extraire le base64
+    const matches = image.match(/^data:image\/jpeg;base64,(.+)$/);
+    if (!matches) {
+      console.error("Image invalide");
+      return;
+    }
+
+    const base64Data = matches[1];
+    const buffer = Buffer.from(base64Data, "base64");
+
+    // Créer un nom de fichier unique
+    const filename = `${id}_${Date.now()}.jpg`;
+    const filepath = path.join(uploadDir, filename);
+
+    // Sauvegarde
+    fs.writeFile(filepath, buffer, (err) => {
+      if (err) {
+        console.error("Erreur d'écriture image :", err);
+      } else {
+        console.log(`Image sauvegardée : ${filepath}`);
+      }
     });
+  });
 
-    socket.on('client_update', (data) => {
 
-        const id = socket.id;
-        
-        broadcastToGodot({ id, data }); // envoie à Godot
+  socket.on("continuous_data", (data) => {
+    clients[data.id] = { ...clients[data.id], ...data };
+    
+    // broadcastToGodot({ id, data }); // envoie à Godot
 
-        
-        
-        clientsData[socket.id] = { ...data, timestamp: Date.now() };
+    console.log(data); // debug
+  });
 
-        io.sockets.sockets.forEach((s) => {
-            if (s !== socket && s.clientType === 'server_local') {
-                if (data.x == undefined && data.y == undefined) {
-                    console.log('client_action', socket.id, 'action1 detected');
-                    console.log(data);
-                }
-
-                s.emit('client_data', { id: socket.id, data });
-                
-
-            }
-        });
+  socket.on("get_user_data", ({ id }) => {
+    const data = clients[id] || {};
+    socket.emit("user_data", {
+      pseudo: data.pseudo || null,
+      color: data.color || null,
     });
+  });
 
-    socket.on('disconnect', () => {
+  socket.on('disconnect', () => {
         console.log('Disconnected:', socket.id);
         delete clientsData[socket.id];
     });
+
+      // Exemple de message serveur vers client
+  setInterval(() => {
+    io.emit("emit_message", {
+      target: "all",
+      message:`Ping général nr ${ping_count}`,
+      notification: true,
+    });
+    ping_count++;
+  }, 50000);
+
 });
+
 
 app.get('/clients', (req, res) => {
     res.json(clientsData);
 });
 
-server.listen(3001, () => {
-    console.log('Server running at http://localhost:3001');
+// Ecoute sur toutes les interfaces réseau :
+// Windows : ipconfig => adresse IP locale IPV4
+// Linux : ip a ou hostname -I => inet
+server.listen(3001, "0.0.0.0", () => {
+  console.log("Serveur accessible sur le réseau local");
 });
