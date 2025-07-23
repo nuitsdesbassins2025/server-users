@@ -54,7 +54,7 @@ app.use(express.static(path.join(__dirname, "../public")));
 
 // Quand on va à la racine, on envoie le fichier index.html
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/index.html"));
+  res.sendFile(path.join(__dirname, "../public/client.html"));
 });
 
 // Optionnel : gestion d'erreur 404
