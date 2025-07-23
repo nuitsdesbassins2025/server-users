@@ -48,8 +48,19 @@ function broadcastToGodot(message) {
 }
 
 
-// ✅ Correction ici : chemin absolu vers le dossier public
-app.use(express.static(path.join(__dirname, '..', 'public')));
+
+// Servir les fichiers statiques depuis le dossier 'public'
+app.use(express.static(path.join(__dirname, "../public")));
+
+// Quand on va à la racine, on envoie le fichier index.html
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/index.html"));
+});
+
+// Optionnel : gestion d'erreur 404
+app.use((req, res) => {
+  res.status(404).send("Page non trouvée");
+});
 
 let clientsData = {};
 
@@ -150,9 +161,7 @@ app.get('/clients', (req, res) => {
 });
 
 
-app.use((req, res, next) => {
-  res.status(404).json({ error: "Route non trouvée" });
-});
+
 
 // Ecoute sur toutes les interfaces réseau :
 // Windows : ipconfig => adresse IP locale IPV4
