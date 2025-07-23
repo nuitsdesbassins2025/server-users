@@ -7,6 +7,7 @@ const { Server } = require("socket.io");
 const path = require("path");
 const fs = require("fs");
 
+
 // ─────────────────────────────────────────────────────────────
 // 🚀 INITIALISATION DES SERVEURS EXPRESS + HTTP + SOCKET.IO
 // ─────────────────────────────────────────────────────────────
@@ -27,7 +28,7 @@ app.get("/", (req, res) => {
 
 // Route de test : retourne les données des clients
 app.get("/clients", (req, res) => {
-  res.json(clientsData);
+  res.json(clients);
 });
 
 // Fallback 404 pour les routes non définies
