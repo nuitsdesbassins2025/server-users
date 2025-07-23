@@ -21,6 +21,10 @@ Un bouton "allow notification" qui demande l'autorisation de déclencher des not
 On affiche ensuite une liste des messages transmis par le serveur à destination de l'utilisateur - emit_message( target(str), message(str), notification(bool) ) , l'utilisateur a une liste d'autorisations, initialement son "id" et "all", si la target fait parti de la liste alors le message est ajouté à la liste, si notification true, et que l'autorisation est donnée, on emmet une notification.
 
 Pour les changements ponctuels (pseudo/action/couleurs/envoi selfie) on peut prévoir des fonctions spécifiques de type "update_pseudo(id,pseudo)" et le serveur renvoie une confirmation lorsqu'il l'a enregistré
-et pour les données continues (x/y, accellero, GPS, volume sonore...), on structure tout dans un objet js
+et pour les données continues (x/y, accellero, GPS, volume sonore...), on structure tout dans un objet js et on transmet en continu
 
-Peut tu m'aider pour mettre en place ça ? Avec le html css js ?
+N'hésite pas à me dire ce que tu penses de cette structure, si tu vois des choses à modifier
+
+Peut tu m'aider pour mettre en place ça ? Avec le html css js pour le client ?
+
+Les bouts de codes à mettre du côté de mon serveur NodeJs

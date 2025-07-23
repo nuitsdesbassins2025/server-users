@@ -149,9 +149,19 @@ app.get('/clients', (req, res) => {
     res.json(clientsData);
 });
 
+
+app.use((req, res, next) => {
+  res.status(404).json({ error: "Route non trouvée" });
+});
+
 // Ecoute sur toutes les interfaces réseau :
 // Windows : ipconfig => adresse IP locale IPV4
 // Linux : ip a ou hostname -I => inet
-server.listen(3001, "0.0.0.0", () => {
-  console.log("Serveur accessible sur le réseau local");
+// server.listen(3001, "0.0.0.0", () => {
+//   console.log("Serveur accessible sur le réseau local");
+// });
+
+const PORT = process.env.PORT || 3001;
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`Serveur démarré sur le port ${PORT}`);
 });
