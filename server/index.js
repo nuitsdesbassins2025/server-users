@@ -98,7 +98,7 @@ io.on("connection", (socket) => {
   // Données continues (ex : position, état)
   socket.on("continuous_data", (data) => {
     clients[data.id] = { ...clients[data.id], ...data };
-    console.log("📡 Données reçues :", data);
+    // console.log("📡 Données reçues_continuous_data_ :", data);
   });
 
   // Envoi des données utilisateur à un client
@@ -118,6 +118,7 @@ io.on("connection", (socket) => {
 
 
   socket.on("send_message", ({ target, message, notification }) => {
+    console.log("📡 Données reçues _send_message_ :", { target, message, notification });
     if (target === "all") {
       io.emit("emit_message", {
         target: "all",
