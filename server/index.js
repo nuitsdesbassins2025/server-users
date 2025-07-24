@@ -7,7 +7,6 @@ const { Server } = require("socket.io");
 const path = require("path");
 const fs = require("fs");
 
-
 // ─────────────────────────────────────────────────────────────
 // 🚀 INITIALISATION DES SERVEURS EXPRESS + HTTP + SOCKET.IO
 // ─────────────────────────────────────────────────────────────
@@ -18,107 +17,99 @@ const io = new Server(server);
 // ─────────────────────────────────────────────────────────────
 // 🌍 MIDDLEWARES EXPRESS
 // ─────────────────────────────────────────────────────────────
-// Servir les fichiers statiques depuis le dossier /public
 app.use(express.static(path.join(__dirname, "../public")));
 
-// Route de base : envoie client.html quand on accède à /
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/client.html"));
 });
 
-// Route de test : retourne les données des clients
 app.get("/clients", (req, res) => {
   res.json(clients);
 });
 
-// Fallback 404 pour les routes non définies
 app.use((req, res) => {
   res.status(404).send("Page non trouvée");
 });
 
 // ─────────────────────────────────────────────────────────────
-// 💬 SOCKET.IO : COMMUNICATION EN TEMPS RÉEL AVEC LES CLIENTS
+// 🗂️ DONNÉES EN MÉMOIRE
 // ─────────────────────────────────────────────────────────────
-let clients = {};
-let clientsData = {};
-let ping_count = 0;
+let clients = {};         // { id: { pseudo, color, ... } }
+let clientsData = {};     // { socket.id: { id } }
 
+// ─────────────────────────────────────────────────────────────
+// 💬 SOCKET.IO : COMMUNICATION EN TEMPS RÉEL
+// ─────────────────────────────────────────────────────────────
 io.on("connection", (socket) => {
-  console.log("🟢 Nouveau client connecté via Socket.IO");
+  console.log("🟢 Nouveau client connecté :", socket.id);
 
-  // Pseudo mis à jour
-  socket.on("update_pseudo", ({ id, pseudo }) => {
-    clients[id] = clients[id] || {};
-    clients[id].pseudo = pseudo;
-    socket.emit("pseudo_updated", { pseudo });
-    console.log(`✅ Pseudo mis à jour pour ${id} : ${pseudo}`);
-  });
 
-  // Couleur mise à jour
-  socket.on("update_color", ({ id, color }) => {
-    clients[id] = clients[id] || {};
-    clients[id].color = color;
-    console.log(`🎨 Couleur reçue de ${id}`);
-  });
-
-  // Déclenchement d’une action serveur (à personnaliser)
-  socket.on("action_triggered", ({ id }) => {
-    console.log("⚡ Action demandée par", id);
-    // TODO : action serveur personnalisée
-  });
-
-  // Réception et sauvegarde d’une image (ex: selfie)
-  socket.on("selfie", ({ id, image }) => {
-    console.log(`🖼️ Image reçue de ${id}`);
-
-    const uploadDir = path.join(__dirname, "uploads");
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir);
-    }
-
-    const matches = image.match(/^data:image\/jpeg;base64,(.+)$/);
-    if (!matches) {
-      console.error("❌ Image invalide");
-      return;
-    }
-
-    const buffer = Buffer.from(matches[1], "base64");
-    const filename = `${id}_${Date.now()}.jpg`;
-    const filepath = path.join(uploadDir, filename);
-
-    fs.writeFile(filepath, buffer, (err) => {
-      if (err) {
-        console.error("❌ Erreur d'écriture image :", err);
-      } else {
-        console.log(`✅ Image sauvegardée : ${filepath}`);
-      }
-    });
-  });
-
-  // Données continues (ex : position, état)
-  socket.on("continuous_data", (data) => {
-    clients[data.id] = { ...clients[data.id], ...data };
-    // console.log("📡 Données reçues_continuous_data_ :", data);
-  });
-
-  // Envoi des données utilisateur à un client
+  // 📤 Récupérer les données d’un utilisateur
+  // Fonction appelée par le client à l'initialisation
   socket.on("get_user_data", ({ id }) => {
     const data = clients[id] || {};
+
+    clientsData[socket.id] = { id }; // Stocke l'association socket.id <-> id utilisateur
+
     socket.emit("user_data", {
       pseudo: data.pseudo || null,
       color: data.color || null,
     });
   });
 
-  // Déconnexion
-  socket.on("disconnect", () => {
-    console.log("🔴 Client Socket.IO déconnecté :", socket.id);
-    delete clientsData[socket.id];
+  // 🎯 Mise à jour du pseudo
+  socket.on("update_pseudo", ({ id, pseudo }) => {
+    clients[id] = clients[id] || {};
+    clients[id].pseudo = pseudo;
+
+    socket.emit("pseudo_updated", { pseudo });
+    console.log(`✅ Pseudo mis à jour pour ${id} : ${pseudo}`);
+  });
+
+  // 🎨 Mise à jour de la couleur
+  socket.on("update_color", ({ id, color }) => {
+    clients[id] = clients[id] || {};
+    clients[id].color = color;
+
+    console.log(`🎨 Couleur mise à jour pour ${id} : ${color}`);
+  });
+
+  // ⚡ Action personnalisée
+  socket.on("action_triggered", ({ id }) => {
+    console.log("⚡ Action demandée par", id);
+    // Action serveur ici
+  });
+
+  // 🖼️ Réception d’une image (base64)
+  socket.on("selfie", ({ id, image }) => {
+    console.log(`🖼️ Image reçue de ${id}`);
+    const uploadDir = path.join(__dirname, "uploads");
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
+
+    const matches = image.match(/^data:image\/jpeg;base64,(.+)$/);
+    if (!matches) return console.error("❌ Image invalide");
+
+    const buffer = Buffer.from(matches[1], "base64");
+    const filename = `${id}_${Date.now()}.jpg`;
+    const filepath = path.join(uploadDir, filename);
+
+    fs.writeFile(filepath, buffer, (err) => {
+      if (err) console.error("❌ Erreur d'écriture image :", err);
+      else console.log(`✅ Image sauvegardée : ${filepath}`);
+    });
+  });
+
+  // 📡 Données continues
+  socket.on("continuous_data", (data) => {
+    clients[data.id] = { ...clients[data.id], ...data };
   });
 
 
+
+  // ✉️ Envoi de message
   socket.on("send_message", ({ target, message, notification }) => {
-    console.log("📡 Données reçues _send_message_ :", { target, message, notification });
+    console.log("📡 Message reçu :", { target, message, notification });
+
     if (target === "all") {
       io.emit("emit_message", {
         target: "all",
@@ -126,29 +117,34 @@ io.on("connection", (socket) => {
         notification: notification || false,
       });
     } else {
-      const recipientSocket = Object.keys(clientsData).find(
-        (id) => clientsData[id].pseudo === target
-      );
-      if (recipientSocket) {
-        io.to(recipientSocket).emit("emit_message", {
-          target: recipientSocket,
+      // Recherche du socket.id associé à l’id ciblé
+      const recipientSocketId = Object.keys(clientsData).find((sid) => {
+        return clientsData[sid].id === target;
+      });
+
+      if (recipientSocketId) {
+        io.to(recipientSocketId).emit("emit_message", {
+          target,
           message,
           notification: notification || false,
         });
+      } else {
+        console.log(`❌ Aucun client connecté avec l'id : ${target}`);
       }
     }
   });
 
-  // Exemple de message émis périodiquement à tous les clients
-  // setInterval(() => {
-  //   io.emit("emit_message", {
-  //     target: "all",
-  //     message: `Ping général nr ${ping_count}`,
-  //     notification: true,
-  //   });
-  //   ping_count++;
-  // }, 50000);
-
+  
+  // ❌ Déconnexion
+  socket.on("disconnect", () => {
+    const client = clientsData[socket.id];
+    if (client) {
+      console.log(`🔴 Déconnexion de ${client.id} (socket ${socket.id})`);
+    } else {
+      console.log(`🔴 Déconnexion anonyme (socket ${socket.id})`);
+    }
+    delete clientsData[socket.id];
+  });
 });
 
 // ─────────────────────────────────────────────────────────────
