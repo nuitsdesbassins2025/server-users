@@ -116,15 +116,38 @@ io.on("connection", (socket) => {
     delete clientsData[socket.id];
   });
 
+
+  socket.on("send_message", ({ target, message, notification }) => {
+    if (target === "all") {
+      io.emit("emit_message", {
+        target: "all",
+        message,
+        notification: notification || false,
+      });
+    } else {
+      const recipientSocket = Object.keys(clientsData).find(
+        (id) => clientsData[id].pseudo === target
+      );
+      if (recipientSocket) {
+        io.to(recipientSocket).emit("emit_message", {
+          target: recipientSocket,
+          message,
+          notification: notification || false,
+        });
+      }
+    }
+  });
+
   // Exemple de message émis périodiquement à tous les clients
-  setInterval(() => {
-    io.emit("emit_message", {
-      target: "all",
-      message: `Ping général nr ${ping_count}`,
-      notification: true,
-    });
-    ping_count++;
-  }, 50000);
+  // setInterval(() => {
+  //   io.emit("emit_message", {
+  //     target: "all",
+  //     message: `Ping général nr ${ping_count}`,
+  //     notification: true,
+  //   });
+  //   ping_count++;
+  // }, 50000);
+
 });
 
 // ─────────────────────────────────────────────────────────────
