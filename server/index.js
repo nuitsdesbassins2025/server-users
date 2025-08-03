@@ -77,9 +77,17 @@ io.on("connection", (socket) => {
   // ⚡ Action personnalisée
   socket.on("action_triggered", ({ id }) => {
     console.log("⚡ Action demandée par", id);
-    io.emit("action_triggered_by", { id: id });
-    // Action serveur ici
+
+    const adminSocketId = Object.keys(clientsData).find((sid) => {
+        return clientsData[sid].id === "id-admin1234";
+      });
+    if (adminSocketId) {
+      io.to(adminSocketId).emit("action_triggered_by", { id: id });
+    } else{
+      console.log(`❌ Aucun administrateur connecté pour l'action de ${id}`);
+    }
   });
+
 
   // 🖼️ Réception d’une image (base64)
   socket.on("selfie", ({ id, image }) => {
