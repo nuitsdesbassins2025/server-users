@@ -84,8 +84,11 @@ io.on("connection", (socket) => {
     if (adminSocketId) {
       io.to(adminSocketId).emit("action_triggered_by", { id: id });
     } else{
-      console.log(`❌ Aucun administrateur connecté pour l'action de ${id}`);
-    }
+        socket.emit("emit_message", {
+          target: "all",
+          message: "pas d'admin connecté",
+          notification: notification || false,
+      });
   });
 
 
