@@ -84,7 +84,7 @@ io.on("connection", (socket) => {
     if (adminSocketId) {
       io.to(adminSocketId).emit("action_triggered_by", { id: id });
     } else{
-        socket.emit("emit_message", {
+        io.emit("emit_message", {
           target: "all",
           message: "pas d'admin connecté",
           notification: notification || false,
