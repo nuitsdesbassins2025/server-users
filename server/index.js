@@ -77,6 +77,7 @@ io.on("connection", (socket) => {
   // ⚡ Action personnalisée
   socket.on("action_triggered", ({ id }) => {
     console.log("⚡ Action demandée par", id);
+    socket.emit("action_triggered", { id });
     // Action serveur ici
   });
 
