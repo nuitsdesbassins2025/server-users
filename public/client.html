@@ -1,9 +1,10 @@
 <!-- client.html -->
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Client Capteurs</title>
   <style>
     body {
@@ -13,7 +14,8 @@
       background: #f5f5f5;
     }
 
-    button, input {
+    button,
+    input {
       display: block;
       width: 100%;
       margin: 0.5rem 0;
@@ -35,12 +37,12 @@
     }
 
     #btnMicro {
-        background: linear-gradient(to right, #4caf50 0%, #ccc 0%);
-        transition: background 0.1s linear;
+      background: linear-gradient(to right, #4caf50 0%, #ccc 0%);
+      transition: background 0.1s linear;
     }
-    
   </style>
 </head>
+
 <body>
   <button id="btnPseudo">Choisir un pseudo</button>
   <input type="color" id="colorPicker" />
@@ -57,5 +59,5 @@
   <script src="/socket.io/socket.io.js"></script>
   <script src="client.js"></script>
 </body>
-</html>
 
+</html>
