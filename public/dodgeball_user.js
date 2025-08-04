@@ -6,7 +6,7 @@ async function initRNBO() {
     const response = await fetch("/export/NuitsBassins_dodgeweb.export.json");
     const patchExport = await response.json();
 
-    rnboDevice = await createDevice({ context: audioContext, patchExport });
+    const rnboDevice = await createDevice({ context: audioContext, patchExport });
     rnboDevice.node.connect(audioContext.destination);
     console.log("✅ RNBO prêt (web)");
 }
