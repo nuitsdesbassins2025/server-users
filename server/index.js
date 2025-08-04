@@ -7,6 +7,7 @@ const { Server } = require("socket.io");
 const path = require("path");
 const fs = require("fs");
 
+
 // ─────────────────────────────────────────────────────────────
 // 🚀 INITIALISATION DES SERVEURS EXPRESS + HTTP + SOCKET.IO
 // ─────────────────────────────────────────────────────────────
@@ -79,15 +80,15 @@ io.on("connection", (socket) => {
     console.log("⚡ Action demandée par", id);
 
     const adminSocketId = Object.keys(clientsData).find((sid) => {
-        return clientsData[sid].id === "id-admin1234";
-      });
+      return clientsData[sid].id === "id-admin1234";
+    });
     if (adminSocketId) {
       io.to(adminSocketId).emit("action_triggered_by", { id: id });
-    } else{
-        socket.emit("emit_message", {
-          target: "all",
-          message: "pas d'admin connecté",
-          notification: false,
+    } else {
+      socket.emit("emit_message", {
+        target: "all",
+        message: "pas d'admin connecté",
+        notification: false,
       });
     };
   });
@@ -147,7 +148,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  
+
   // ❌ Déconnexion
   socket.on("disconnect", () => {
     const client = clientsData[socket.id];
