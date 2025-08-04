@@ -1,6 +1,3 @@
-import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
-import { createDevice, MessageEvent, TimeNow } from "./lib/rnbo.min.js";
-
 let rnboDevice = null;
 let audioContext = null;
 
@@ -11,7 +8,6 @@ async function initRNBO() {
 
     rnboDevice = await createDevice({ context: audioContext, patchExport });
     rnboDevice.node.connect(audioContext.destination);
-
     console.log("✅ RNBO prêt (web)");
 }
 
