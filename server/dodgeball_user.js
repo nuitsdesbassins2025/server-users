@@ -6,7 +6,7 @@ let audioContext = null;
 
 async function initRNBO() {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const response = await fetch("/export/your_patch.json");
+    const response = await fetch("/export_dodgeballweb/NuitsBassins_dodgeweb.export.json");
     const patchExport = await response.json();
 
     rnboDevice = await createDevice({ context: audioContext, patchExport });
