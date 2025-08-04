@@ -34,6 +34,7 @@ function triggerEvent(type, x) {
     rnboDevice.scheduleEvent(new MessageEvent(now, type, [1]));
 }
 
+/*
 // Connexion Socket.IO
 const socket = io("http://localhost:5000"); // ou URL distante si nécessaire
 
@@ -47,5 +48,5 @@ socket.on("connect", () => {
         triggerEvent(type, x);
     });
 });
-
+*/
 initRNBO();
