@@ -19,7 +19,7 @@ function clamp(val, min, max) {
     return Math.max(min, Math.min(val, max));
 }
 
-document.getElementById("bouclierBtn").addEventListener("click", () => {
+document.getElementById("btnAction").addEventListener("click", () => {
     const x = 0.5; // ou un autre x ∈ [0, 1], ou random
     triggerEvent("bouclier", x);
     console.log("🛡️ Bouclier déclenché localement");
