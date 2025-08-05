@@ -49,8 +49,10 @@ document.getElementById("colorPicker").addEventListener("input", (e) => {
 
 // ACTION
 document.getElementById("btnAction").addEventListener("click", () => {
+  vibrate(100); // Vibration de 100ms
   socket.emit("action_triggered", { id });
   console.log("⚡ Action demandée");
+  
 });
 
 // MOUVEMENT
@@ -179,7 +181,18 @@ socket.on("user_data", ({ pseudo, color }) => {
   }
 });
 
+function vibrate(duration) {
+    if ("vibrate" in navigator) {
+        console.log("🔔 Vibration activée pour", duration, "ms");
+        navigator.vibrate(duration);
+    } else {
+        console.log("❌ L'API Vibration n'est pas supportée.");
+    }
+}
 
+document.getElementById("btn-vibrate").addEventListener("click", () => {
+    vibrate(200);
+});
 
 // MESSAGES
 socket.on("emit_message", ({ target, message, notification }) => {
