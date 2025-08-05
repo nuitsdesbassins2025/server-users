@@ -50,6 +50,7 @@ document.getElementById("colorPicker").addEventListener("input", (e) => {
 // ACTION
 document.getElementById("btnAction").addEventListener("click", () => {
   socket.emit("action_triggered", { id });
+  console.log("⚡ Action demandée");
 });
 
 // MOUVEMENT
