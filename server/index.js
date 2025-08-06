@@ -149,6 +149,22 @@ io.on("connection", (socket) => {
   });
 
 
+
+  // 📡 Données continues
+  socket.on("ball_bounce", (data) => {
+
+    message = `La balle a rebondi à la position x: ${data.x}, y: ${data.y}`;
+
+    io.emit("emit_message", {
+        target: "all",
+        message,
+        notification: notification || false,
+      });
+      io.emit("vibration", 200); // Vibration de 200ms
+  });
+
+
+
   // ❌ Déconnexion
   socket.on("disconnect", () => {
     const client = clientsData[socket.id];

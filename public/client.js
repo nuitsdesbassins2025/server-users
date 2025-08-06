@@ -181,6 +181,11 @@ socket.on("user_data", ({ pseudo, color }) => {
   }
 });
 
+socket.on("vibration", (duration) => {
+  vibrate(duration);
+  console.log(`🔔 Vibration de ${duration} ms`);
+});
+
 function vibrate(duration) {
     if ("vibrate" in navigator) {
         console.log("🔔 Vibration activée pour", duration, "ms");
