@@ -130,6 +130,7 @@ io.on("connection", (socket) => {
         message,
         notification: notification || false,
       });
+      io.emit("vibration", 200);
     } else {
       // Recherche du socket.id associé à l’id ciblé
       const recipientSocketId = Object.keys(clientsData).find((sid) => {
@@ -142,6 +143,7 @@ io.on("connection", (socket) => {
           message,
           notification: notification || false,
         });
+        io.to(recipientSocketId).emit("vibration", 200);
       } else {
         console.log(`❌ Aucun client connecté avec l'id : ${target}`);
       }
@@ -153,7 +155,7 @@ io.on("connection", (socket) => {
   // 📡 Données continues
   socket.on("ball_bounce", (data) => {
 
-    message = `La balle a rebondi à la position x: ${data.x}, y: ${data.y}`;
+    message = `La balle a rebondi datas : ${JSON.stringify(data)}`;
 
     io.emit("emit_message", {
         target: "all",
