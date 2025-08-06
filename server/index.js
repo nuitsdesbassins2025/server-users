@@ -160,7 +160,7 @@ io.on("connection", (socket) => {
     io.emit("emit_message", {
         target: "all",
         message,
-        notification: notification || false,
+        notification: false,
       });
       io.emit("vibration", 200); // Vibration de 200ms
   });
