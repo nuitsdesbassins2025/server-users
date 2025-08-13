@@ -1,84 +1,157 @@
-let rnboDevice = null;
-let audioContext = null;
+let device, context, x;
 
-async function loadRNBO() {
-    if (typeof RNBO === "undefined") {
-        console.error("❌ RNBO non disponible !");
-        return;
-    }
-    console.log("🔄 Chargement de RNBO...");
+async function initRNBO() {
 
-    if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    console.log("🎧 Contexte audio prêt :", audioContext.state);
+    const patchExportURL = "export/NuitsBassins_dodgeweb.export.json";
 
-    const response = await fetch("/export/NuitsBassins_dodgeweb.export.json");
-    const patch = await response.json();
+    // Create Audio Context
+    const WAContext = window.AudioContext || window.webkitAudioContext;
+    context = new WAContext();
 
-    console.log("📦 Patch RNBO chargé :", patch);
+    // Create gain node and connect it to audio output
+    const outputNode = context.createGain();
+    outputNode.connect(context.destination);
 
-    rnboDevice = await RNBO.createDevice({ context: audioContext, patch });
-    
-    console.log("🔌 RNBO Device créé :", rnboDevice);
-    rnboDevice.node.connect(audioContext.destination);
-
-    console.log("🎛️ RNBO prêt !");
-}
-
-function clamp(val, min, max) {
-    return Math.max(min, Math.min(val, max));
-}
-
-function triggerEvent(type, x) {
-    if (!rnboDevice) {
-        console.warn("RNBO non initialisé");
-        return;
-    }
-
-    if (!["mur", "joueur", "bouclier"].includes(type)) {
-        console.warn("Type non reconnu :", type);
-        return;
-    }
-
-    const now = RNBO.TimeNow;
-    const pan = clamp(x, 0, 1) * 2 - 1;
-
-    rnboDevice.scheduleEvent(new RNBO.MessageEvent(now, `pan_${type}`, [pan]));
-    rnboDevice.scheduleEvent(new RNBO.MessageEvent(now, type, [1]));
-}
-
-document.getElementById("btnAction").addEventListener("click", async () => {
+    // Fetch the exported patcher
+    let response, patcher;
     try {
-        console.log("Action déclenchée");
-        if (!audioContext || audioContext.state === "suspended") {
-            console.log("Reprise du contexte audio");
-            await audioContext?.resume();
+        response = await fetch(patchExportURL);
+        patcher = await response.json();
+
+        if (!window.RNBO) {
+            // Load RNBO script dynamically
+            // Note that you can skip this by knowing the RNBO version of your patch
+            // beforehand and just include it using a <script> tag
+            await loadRNBOScript(patcher.desc.meta.rnboversion);
         }
-        if (!rnboDevice) {
-            console.log("Chargement de RNBO");
+    } catch (err) {
+        const errorContext = {
+            error: err,
+        };
+        if (response && (response.status >= 300 || response.status < 200)) {
+            (errorContext.header = `Couldn't load patcher export bundle`),
+                (errorContext.description =
+                    `Check app.js to see what file it's trying to load. Currently it's` +
+                    ` trying to load "${patchExportURL}". If that doesn't` +
+                    ` match the name of the file you exported from RNBO, modify` +
+                    ` patchExportURL in app.js.`);
+        }
+        if (typeof guardrails === "function") {
+            guardrails(errorContext);
+        } else {
+            throw err;
+        }
+        return;
+    }
+
+    // Fetch the dependencies
+    let dependencies = [];
+    try {
+        const dependenciesResponse = await fetch("export/dependencies.json");
+        dependencies = await dependenciesResponse.json();
+
+        // Prepend "export" to any file dependenciies
+        dependencies = dependencies.map(d => d.file ? Object.assign({}, d, { file: "export/" + d.file }) : d);
+    } catch (e) { }
+
+    // Create the device
+    let device;
+    try {
+        device = await RNBO.createDevice({ context, patcher });
+    } catch (err) {
+        if (typeof guardrails === "function") {
+            guardrails({ error: err });
+        } else {
+            throw err;
+        }
+        return;
+    }
+
+
+    // Load the samples
+    const results = await device.loadDataBufferDependencies(dependencies);
+    results.forEach(result => {
+        if (result.type === "success") {
+            console.log(`Successfully loaded buffer with id ${result.id}`);
+        } else {
+            console.log(`Failed to load buffer with id ${result.id}, ${result.error}`);
+        }
+    });
+
+    device.node.connect(outputNode);
+    //    attachOutports(rnboDevice);
+
+    // 4) (Optionnel) charger les buffers référencés
+    try {
+        const depsRes = await fetch("/export/dependencies.json");
+        let deps = await depsRes.json();
+        // préfixer les chemins si nécessaire
+        deps = deps.map(d => d.file ? { ...d, file: "/export/" + d.file } : d);
+
+        const results = await device.loadDataBufferDependencies(deps);
+        results.forEach(r =>
+            console.log((r.type === "success")
+                ? `✅ Buffer chargé: ${r.id}`
+                : `❌ Échec buffer: ${r.id} → ${r.error}`
+            )
+        );
+    } catch (_) {
+        // pas de dependencies.json, ce n’est pas bloquant
+    }
+
+    document.body.onclick = () => {
+        if (context.state === "running") return;
+        context.resume();
+        console.log("Audio context resumed");
+    };
+
+    // Bouton utilisateur
+    document.getElementById("play").addEventListener("click", async () => {
+        if (!context || context.state === "suspended") {
+            await context?.resume();
+        }
+
+        if (!device) {
             await loadRNBO();
         }
-        console.log("Déclenchement de l'événement bouclier");
-        triggerEvent("bouclier", 0.5);
-        console.log("🛡️ Bouclier local déclenché");
-    } catch (error) {
-        console.error("Une erreur est survenue :", error);
-    }
-});
 
-/*
-// Socket.IO désactivé pour l’instant
-const socket = io("http://localhost:5000");
-
-socket.on("connect", () => {
-    console.log("🧠 Socket connecté");
-});
-
-["mur", "joueur", "bouclier"].forEach(type => {
-    socket.on(type, data => {
-        const x = parseFloat(data?.x ?? 0.5);
-        triggerEvent(type, x);
+        triggerEvent("bouclier", x, device);
+        console.log("🛡️ Bouclier déclenché");
     });
-});
-*/
+
+    // Receive Outport Message for Inport Feedback
+    device.messageEvent.subscribe((ev) => {
+        console.log(`Receive message ${ev.tag}: ${ev.payload}`);
+
+        if (ev.tag === "5") console.log("from the bouclier inport");
+    });
+}
+
+function loadRNBOScript(version) {
+    return new Promise((resolve, reject) => {
+        if (/^\d+\.\d+\.\d+-dev$/.test(version)) {
+            throw new Error("Version RNBO exportée en mode debug !");
+        }
+
+        const el = document.createElement("script");
+        el.src = `https://c74-public.nyc3.digitaloceanspaces.com/rnbo/${encodeURIComponent(version)}/rnbo.min.js`;
+        el.onload = resolve;
+        el.onerror = err => reject(new Error("Erreur de chargement RNBO : " + version));
+        document.body.append(el);
+    });
+}
+
+function triggerEvent(type, x = 0.5, device) {
+    if (!["mur", "bouclier"].includes(type)) {
+        return console.warn("Type non reconnu:", type);
+    }
+    const now = RNBO.TimeNow;
+    const pan = Math.max(0, Math.min(1, x)) * 2 - 1;
+    device.scheduleEvent(new RNBO.MessageEvent(now, `pan_${type}`, [pan]));
+    device.scheduleEvent(new RNBO.MessageEvent(now, type, [1]));
+    console.log("🎯 Event envoyé :", `${type}`, `${x}`);
+}
+
+
+// Au chargement
+initRNBO();
