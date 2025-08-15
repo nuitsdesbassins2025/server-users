@@ -1,5 +1,7 @@
 let device, context, x;
 
+import { createDevice, TimeNow, MessageEvent } from "@rnbo/js";
+
 async function initRNBO() {
 
     const patchExportURL = "export/NuitsBassins_dodgeweb.export.json";
@@ -57,7 +59,7 @@ async function initRNBO() {
     // Create the device
     let device;
     try {
-        device = await RNBO.createDevice({ context, patcher });
+        device = await createDevice({ context, patcher });
     } catch (err) {
         if (typeof guardrails === "function") {
             guardrails({ error: err });
@@ -79,9 +81,7 @@ async function initRNBO() {
     });
 
     device.node.connect(outputNode);
-    //    attachOutports(rnboDevice);
-
-    // 4) (Optionnel) charger les buffers référencés
+    // Loading sound buffers
     try {
         const depsRes = await fetch("/export/dependencies.json");
         let deps = await depsRes.json();
@@ -106,7 +106,7 @@ async function initRNBO() {
     };
 
     // Bouton utilisateur
-    document.getElementById("play").addEventListener("click", async () => {
+    document.getElementById("btnAction").addEventListener("click", async () => {
         if (!context || context.state === "suspended") {
             await context?.resume();
         }
@@ -145,10 +145,10 @@ function triggerEvent(type, x = 0.5, device) {
     if (!["mur", "bouclier"].includes(type)) {
         return console.warn("Type non reconnu:", type);
     }
-    const now = RNBO.TimeNow;
+    const now = TimeNow;
     const pan = Math.max(0, Math.min(1, x)) * 2 - 1;
-    device.scheduleEvent(new RNBO.MessageEvent(now, `pan_${type}`, [pan]));
-    device.scheduleEvent(new RNBO.MessageEvent(now, type, [1]));
+    device.scheduleEvent(new MessageEvent(now, `pan_${type}`, [pan]));
+    device.scheduleEvent(new MessageEvent(now, type, [1]));
     console.log("🎯 Event envoyé :", `${type}`, `${x}`);
 }
 
