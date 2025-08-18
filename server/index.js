@@ -47,37 +47,80 @@ io.on("connection", (socket) => {
 
   // 📤 Récupérer les données d’un utilisateur
   // Fonction appelée par le client à l'initialisation
-  socket.on("get_user_data", ({ id }) => {
-    const data = clients[id] || {};
+  socket.on("client_request_datas", ({ client_id }) => {
+    const data = clients[client_id] || {};
 
-    clientsData[socket.id] = { id }; // Stocke l'association socket.id <-> id utilisateur
+    clientsData[socket.id] = { client_id }; // Stocke l'association socket.id <-> id utilisateur
 
-    socket.emit("user_data", {
-      pseudo: data.pseudo || null,
-      color: data.color || null,
-    });
+    let dataToSend = {} ;
+    
+    for (const [key, value] of Object.entries(data)) {
+      dataToSend[key] = value;
+      console.log(`✅ Donnée stockée pour ${client_id} : ${key} = ${value}`);
+    }
+
+    socket.emit("web_get_client_infos",dataToSend);
   });
 
-  // 🎯 Mise à jour du pseudo
-  socket.on("update_pseudo", ({ id, pseudo }) => {
-    clients[id] = clients[id] || {};
-    clients[id].pseudo = pseudo;
 
-    socket.emit("pseudo_updated", { pseudo });
-    console.log(`✅ Pseudo mis à jour pour ${id} : ${pseudo}`);
-  });
 
-  // 🎨 Mise à jour de la couleur
-  socket.on("update_color", ({ id, color }) => {
-    clients[id] = clients[id] || {};
-    clients[id].color = color;
 
-    console.log(`🎨 Couleur mise à jour pour ${id} : ${color}`);
-  });
+
+
+  // // 🎯 Mise à jour du pseudo
+  // socket.on("update_pseudo", ({ id, pseudo }) => {
+  //   clients[id] = clients[id] || {};
+  //   clients[id].pseudo = pseudo;
+
+  //   socket.emit("pseudo_updated", { pseudo });
+  //   console.log(`✅ Pseudo mis à jour pour ${id} : ${pseudo}`);
+  // });
+
+  // // 🎨 Mise à jour de la couleur
+  // socket.on("update_color", ({ id, color }) => {
+  //   clients[id] = clients[id] || {};
+  //   clients[id].color = color;
+
+  //   console.log(`🎨 Couleur mise à jour pour ${id} : ${color}`);
+  // });
+
+
+
+
+  socket.on("client_update_datas", ({  datas, client_id }) => {
+    
+    // vérification de l'existence du client
+    if (!clients[client_id]) {
+      clients[client_id] = clients[client_id] || {};
+    }
+
+    if (!datas || typeof datas !== "object") {
+      console.warn(`⚠️ Datas invalides pour ${client_id}`);
+      return;
+    }
+
+    console.log(`🔄 Mise à jour des données pour ${client_id} :`, datas);
+
+    // Mise à jour des données du client
+    // clients[client_id] = clients[client_id] || {}; // Assure que l'objet client existe ou en initialise un vide
+    
+    let updated_datas = {};
+
+    // Mise à jour des données du client
+    for (const [key, value] of Object.entries(datas)) {
+      clients[client_id][key] = value;
+      updated_datas[key] = value;
+      console.log(`${key} mis à jour pour ${client_id} : ${value}`);
+    }
+
+    socket.emit("web_client_updated", {client_id, updated_datas });
+
+  })
+
 
   // ⚡ Action personnalisée
-  socket.on("action_triggered", ({ id }) => {
-    console.log("⚡ Action demandée par", id);
+  socket.on("client_action_trigger", ({ client_id , action}) => {
+    console.log("⚡ Action demandée par", client_id, " - action :", action);
 
     const adminSocketId = Object.keys(clientsData).find((sid) => {
       return clientsData[sid].id === "id-admin1234";
@@ -178,6 +221,7 @@ io.on("connection", (socket) => {
     delete clientsData[socket.id];
   });
 });
+
 
 // ─────────────────────────────────────────────────────────────
 // 🎯 LANCEMENT DU SERVEUR

@@ -1,16 +1,18 @@
 const socket = io();
-let id = localStorage.getItem("userId") || generateId();
-localStorage.setItem("userId", id);
+let client_id = localStorage.getItem("userId") || generateId();
+localStorage.setItem("userId", client_id);
 
-let userData = {
-  id,
+// Stockage des données du client
+// Ces données seront envoyées au serveur
+// et mises à jour en fonction des interactions de l'utilisateur
+// Elles sont initialisées avec des valeurs par défaut
+// et seront mises à jour au fur et à mesure des interactions
+
+let client_datas = {
+  client_id,
   pseudo: null,
   color: null,
-  x: 0,
-  y: 0,
-  movement: null,
-  gps: null,
-  sound: 0,
+  registred_groups : []
 };
 
 let sendContinuously = {
@@ -20,40 +22,121 @@ let sendContinuously = {
   sound: false,
 };
 
-//appel si il n'y a pas de données utilisateur
-socket.emit("get_user_data", { id });
+// On initialise une cible cible pour les événements
+// qui seront envoyés au serveur
+// Cette cible sera modifiée pour chaque événement
+// afin de ne pas avoir à la recréer à chaque fois
+// Pour le moment c'est pas encore très utile
+// mais ça permet de mieux structurer le code
+// et de préparer l'envoi d'événements plus complexes
+let base_target = {
+  "emit_from":"client",
+  "emit_id": client_id,
+  "event_id": null,
+  "target_sources": ["all"],
+  "targets": [],
+}
+
+
+
+// Génération d'un ID unique pour l'événement (pour éviter les collisions, ne sert pas à grand chose ici)
+let target = base_target;
+target.event_id =generateId();
+
+// Envoi de la demande de données utilisateur au serveur
+// ça permet de récupérer les données stockées pour l'utilisateur
+// ou alors de créer un nouvel utilisateur si il n'existe pas
+socket.emit("client_request_datas", {client_id:client_id});
+
+
+
+// Mise à jour des données du client
+// Si l'utilisateur a déjà des données stockées, on les récupère
+// Appel les fonctions pour la mise à jour de l'interface si certaines données sont présentes
+socket.on("web_client_updated", ({ updated_datas }) => {
+
+  for (const [key, value] of Object.entries(updated_datas)) {
+    client_datas[key] = value;
+    console.log(`${key} mis à jour : ${value}`);
+
+    if (key === "pseudo") {
+      document.getElementById("btnPseudo").textContent = value;
+    }
+    if (key === "color") {
+      document.getElementById("colorPicker").value = value;
+  }
+}
+  return;
+});
+
 
 
 // PSEUDO
-// On met à jour le pseudo du client sur le serveur
+// On demande la mise à jour du pseudo du client sur le serveur
 document.getElementById("btnPseudo").addEventListener("click", () => {
   const pseudo = prompt("Entrez votre pseudo");
   if (pseudo) {
-    socket.emit("update_pseudo", { id, pseudo });
+    update_client_datas("pseudo", pseudo);
   }
 });
-socket.on("pseudo_updated", ({ pseudo }) => {
-  userData.pseudo = pseudo;
-  document.getElementById("btnPseudo").textContent = pseudo;
-});
+
 
 
 
 // COLOR
+// On demande la mise à jour de la couleur du client sur le serveur
 document.getElementById("colorPicker").addEventListener("input", (e) => {
   const color = e.target.value;
-  userData.color = color;
+  client_datas.color = color;
   e.target.style.backgroundColor = color;
-  socket.emit("update_color", { id, color });
+
+  update_client_datas("color", color);
 });
+
+function returnId() {
+  return client_id;
+}
+
+
+// Mise à jour des données du client
+// Cette fonction est appelée pour mettre à jour les données du client
+function update_client_datas(data_key, data_value) {
+  let to_update_datas = {
+    client_id: client_id,
+    [data_key]: data_value,
+  };
+  
+  let tempTarget = base_target;
+  tempTarget.event_id = generateId();
+
+  socket.emit("client_update_datas", {target: tempTarget, datas : to_update_datas, client_id: client_id });
+}
+
+
+
 
 // ACTION
 document.getElementById("btnAction").addEventListener("click", () => {
+
+  // socket.emit("action_triggered", {client_id});
+  // console.log("⚡ Action demandée");
+
+
   vibrate(100); // Vibration de 100ms
-  socket.emit("action_triggered", { id });
-  console.log("⚡ Action demandée");
+
+  trigger_action("press_button");
   
 });
+
+
+
+function trigger_action(action) {
+
+  console.log(`⚡ Action ${action} déclenchée`);
+  socket.emit("client_action_trigger", {client_id, action });
+}
+
+
 
 // MOUVEMENT
 document.getElementById("btnMouvement").addEventListener("click", () => {
@@ -70,7 +153,7 @@ document.getElementById("btnMouvement").addEventListener("click", () => {
 
   window.addEventListener("devicemotion", (e) => {
     if (sendContinuously.movement) {
-      userData.movement = {
+      client_datas.movement = {
         acc: e.acceleration,
         rot: e.rotationRate,
         
@@ -94,7 +177,7 @@ document.getElementById("btnLocalisation").addEventListener("click", () => {
 
   navigator.geolocation.watchPosition((position) => {
     if (sendContinuously.gps) {
-      userData.gps = {
+      client_datas.gps = {
         lat: position.coords.latitude,
         lon: position.coords.longitude,
       };
@@ -111,7 +194,7 @@ document.getElementById("btnXY").addEventListener("click", () => {
   
   sendContinuously.xy = !sendContinuously.xy;
   const btn = document.getElementById("btnXY");
-  btn.textContent = sendContinuously.xy ? `x : ${userData.x.toFixed(2)} | y : ${userData.y.toFixed(2)}` : "Démarrer XY";
+  btn.textContent = sendContinuously.xy ? `x : ${client_datas.x.toFixed(2)} | y : ${client_datas.y.toFixed(2)}` : "Démarrer XY";
 
 });
 
@@ -129,7 +212,7 @@ document.getElementById("btnSelfie").addEventListener("click", async () => {
   stream.getTracks().forEach(track => track.stop());
 
   const imageData = canvas.toDataURL("image/jpeg", 0.5);
-  socket.emit("selfie", { id, image: imageData });
+  socket.emit("selfie", {client_id, image: imageData });
 });
 
 document.getElementById("btnMicro").addEventListener("click", async () => {
@@ -147,7 +230,7 @@ document.getElementById("btnMicro").addEventListener("click", async () => {
     analyser.getByteFrequencyData(dataArray);
     const avg = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
     const level = Math.min(100, Math.round(avg / 2.5));
-    userData.sound = level;
+    client_datas.sound = level;
 
     // Mise à jour visuelle du bouton
     const btn = document.getElementById("btnMicro");
@@ -164,18 +247,20 @@ document.getElementById("btnMicro").addEventListener("click", async () => {
 document.getElementById("btnNotification").addEventListener("click", async () => {
   const permission = await Notification.requestPermission();
   if (permission === "granted") {
-    userData.notificationsAllowed = true;
+    client_datas.notificationsAllowed = true;
   }
 });
 
 
-socket.on("user_data", ({ pseudo, color }) => {
+socket.on("web_get_client_infos", ({ pseudo, color }) => {
+
+  console.log("Données utilisateur reçues :", { pseudo, color });
   if (pseudo) {
-    userData.pseudo = pseudo;
+    client_datas.pseudo = pseudo;
     document.getElementById("btnPseudo").textContent = pseudo;
   }
   if (color) {
-    userData.color = color;
+    client_datas.color = color;
     document.getElementById("colorPicker").value = color;
     document.getElementById("colorPicker").style.backgroundColor = color;
   }
@@ -201,31 +286,32 @@ document.getElementById("btn-vibrate").addEventListener("click", () => {
 
 // MESSAGES
 socket.on("emit_message", ({ target, message, notification }) => {
-  if ([id, "all"].includes(target)) {
-    const msgElem = document.createElement("div");
-    msgElem.className = "message";
-    msgElem.textContent = message;
-    document.getElementById("messages").appendChild(msgElem);
 
-    if (notification && userData.notificationsAllowed) {
-      new Notification("Message reçu", { body: message });
-    }
+
+  const msgElem = document.createElement("div");
+  msgElem.className = "message";
+  msgElem.textContent = message;
+  document.getElementById("messages").appendChild(msgElem);
+
+  if (notification && client_datas.notificationsAllowed) {
+    new Notification("Message reçu", { body: message });
   }
+  
 });
 
 // ENVOI CONTINU
 setInterval(() => {
   if (sendContinuously.xy) {
-    userData.x = (userData.x + Math.random() * 5) % 100;
-    userData.y = (userData.y + Math.random() * 5) % 100;const
+    client_datas.x = (client_datas.x + Math.random() * 5) % 100;
+    client_datas.y = (client_datas.y + Math.random() * 5) % 100;const
     btn = document.getElementById("btnXY");
     
-    btn.textContent =  `x : ${userData.x.toFixed(2)} | y : ${userData.y.toFixed(2)}`
+    btn.textContent =  `x : ${client_datas.x.toFixed(2)} | y : ${client_datas.y.toFixed(2)}`
   }
-  socket.emit("continuous_data", userData);
+  socket.emit("continuous_data", client_datas);
 }, 500);
 
 
 function generateId() {
-  return "id-" + Math.random().toString(36).substr(2, 9);
+  return "client-" + Math.random().toString(36).substr(2, 9);
 }
