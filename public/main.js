@@ -1,4 +1,4 @@
-let device, context, x;
+let context, x;
 
 import { createDevice, TimeNow, MessageEvent } from "@rnbo/js";
 
