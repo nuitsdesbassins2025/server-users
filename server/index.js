@@ -28,6 +28,11 @@ app.get("/clients", (req, res) => {
   res.json(clients);
 });
 
+app.get("/admin", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/admin.html"));
+});
+
+
 app.use((req, res) => {
   res.status(404).send("Page non trouvée");
 });
@@ -63,26 +68,6 @@ io.on("connection", (socket) => {
   });
 
 
-
-
-
-
-  // // 🎯 Mise à jour du pseudo
-  // socket.on("update_pseudo", ({ id, pseudo }) => {
-  //   clients[id] = clients[id] || {};
-  //   clients[id].pseudo = pseudo;
-
-  //   socket.emit("pseudo_updated", { pseudo });
-  //   console.log(`✅ Pseudo mis à jour pour ${id} : ${pseudo}`);
-  // });
-
-  // // 🎨 Mise à jour de la couleur
-  // socket.on("update_color", ({ id, color }) => {
-  //   clients[id] = clients[id] || {};
-  //   clients[id].color = color;
-
-  //   console.log(`🎨 Couleur mise à jour pour ${id} : ${color}`);
-  // });
 
 
 
@@ -207,6 +192,41 @@ io.on("connection", (socket) => {
       });
       io.emit("vibration", 200); // Vibration de 200ms
   });
+
+
+// ─────────────────────────────────────────────────────────────
+// 🏆 ADMIN
+// ─────────────────────────────────────────────────────────────
+
+  function get_admin_id() {
+      for (const socketId in clientsData) {
+          if (clientsData[socketId].client_id === "id-admin1234") {
+              return socketId;
+          }
+      }
+      console.log(clientsData);
+      return null;
+  }
+
+
+  // ⚡ Action personnalisée
+  socket.on("admin_game_setting", ({ action, value }) => {
+    console.log("⚡ Setting ", action," demandée pour", value);
+
+    const adminSocketId = get_admin_id();
+    console.log("Admin socket ID : %s", adminSocketId);
+
+    if (adminSocketId) {
+      io.to(adminSocketId).emit("admin_game_setting", { action, value });
+
+    } else {
+      console.log("❌ Pas d'admin connecté pour changer la scène");
+    
+    };
+  });
+
+
+
 
 
 

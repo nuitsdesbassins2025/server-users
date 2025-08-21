@@ -1,0 +1,77 @@
+<!-- client.html -->
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Pannel</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 1rem;
+      background: #f5f5f5;
+    }
+
+    button,
+    input {
+      display: block;
+      width: 100%;
+      margin: 0.5rem 0;
+      padding: 1rem;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 8px;
+    }
+
+    #messages {
+      margin-top: 2rem;
+    }
+
+    .message {
+      background: white;
+      padding: 1rem;
+      border-radius: 5px;
+      margin: 0.5rem 0;
+    }
+
+    #btnMicro {
+      background: linear-gradient(to right, #4caf50 0%, #ccc 0%);
+      transition: background 0.1s linear;
+    }
+  </style>
+</head>
+
+<body>
+  <button type="button" id="btnPseudo">Choisir un pseudo waouh</button>
+  <input type="color" id="colorPicker">
+  <button type="button" id="btnAction">Action</button>
+
+  <button type="button" id="btnDogeball">Set Scene Dogeball</button>
+
+  <input type="range" id="ballSpeed" class="slider" min="0" max="10" step="0.1" value="5">
+  <div class="value-display">Vitesse de la balle : <span id="ballSpeedValue">5</span></div>
+  <br>
+
+  <button type="button" id="btnNewPlayer">action request_new_player</button>
+
+  <button type="button" id="btnXY">Activer XY</button>
+
+
+
+  <button type="button" id="btnSelfie">Prendre Selfie</button>
+  <button type="button" id="btnMicro">Activer Micro</button>
+  <button type="button" id="btnNotification">Autoriser Notifications</button>
+  <button type="button" id="btn-vibrate">Vibrer 200 ms</button>
+  <button type="button" id="play">Play</button>
+
+  <div id="messages"></div>
+
+  <script src="https://cdn.cycling74.com/rnbo/latest/rnbo.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="admin.js"></script>
+  <script defer src="main.js"></script>
+</body>
+
+</html>
