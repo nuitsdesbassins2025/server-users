@@ -32,6 +32,9 @@ app.get("/admin", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/admin.html"));
 });
 
+app.get("/draw", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/dessin_gpt.html"));
+});
 
 app.use((req, res) => {
   res.status(404).send("Page non trouvée");
@@ -53,17 +56,19 @@ io.on("connection", (socket) => {
   // 📤 Récupérer les données d’un utilisateur
   // Fonction appelée par le client à l'initialisation
   socket.on("client_request_datas", ({ client_id }) => {
+    console.log(`📥 Demande de données pour ${client_id} (socket ${socket.id})`);
+
     const data = clients[client_id] || {};
 
     clientsData[socket.id] = { client_id }; // Stocke l'association socket.id <-> id utilisateur
-
     let dataToSend = {} ;
     
     for (const [key, value] of Object.entries(data)) {
       dataToSend[key] = value;
       console.log(`✅ Donnée stockée pour ${client_id} : ${key} = ${value}`);
     }
-
+    console.log("toto");
+    console.log(clientsData);
     socket.emit("web_get_client_infos",dataToSend);
   });
 
@@ -103,16 +108,43 @@ io.on("connection", (socket) => {
   })
 
 
-  // ⚡ Action personnalisée
-  socket.on("client_action_trigger", ({ client_id , action}) => {
-    console.log("⚡ Action demandée par", client_id, " - action :", action);
+function getSocketIdById(targetId) {
+    console.log("Recherche de l'ID de socket pour l'ID client :", targetId);
+    for (const [socketId, clientData] of Object.entries(clientsData)) {
+        if (clientData["client_id"] === targetId) {
+            console.log("Socket trouvé :", socketId);
+            return socketId;
+        }
+    }
+    console.log("Aucun socket trouvé pour l'ID client :", targetId);
+    console.log("Contenu de clientsData :", clientsData);
+    return null;
+}
 
-    const adminSocketId = Object.keys(clientsData).find((sid) => {
-      return clientsData[sid].id === "id-admin1234";
-    });
+  // ⚡ Action personnalisée
+  socket.on("client_action_trigger", ({ client_id , action, datas={}}) => {
+    console.log("⚡ Action demandée par", client_id, " - action :", action, " datas:", datas);
+
+    const adminSocketId = getSocketIdById("id-admin1234");
+
+
+    if (action === "touch_screen") {
+      console.log(`Le player ${client_id} a touché l'écran en (${datas.x}, ${datas.y})`);
+      io.emit("clients_touch", { emiter:client_id, x: datas.x, y: datas.y, color_code: clients[client_id]?.color || "#ff4081" });
+      
+      message = `Le player a touché : ${JSON.stringify(datas)}`;
+    }
+
+
+
     if (adminSocketId) {
-      io.to(adminSocketId).emit("action_triggered_by", { id: id });
+
+      io.to(adminSocketId).emit("client_action_trigger", { client_id, action, datas });
+
+      io.to(adminSocketId).emit("action_triggered_by", { client_id: client_id });
     } else {
+      console.log("❌ Pas d'admin connecté pour relayer l'action");
+      console.log(clientsData);
       socket.emit("emit_message", {
         target: "all",
         message: "pas d'admin connecté",
@@ -181,6 +213,18 @@ io.on("connection", (socket) => {
 
 
   // 📡 Données continues
+  socket.on("client_action", (data) => {
+
+    message = `Le player a touché : ${JSON.stringify(data)}`;
+
+    console.log(message);
+
+  });
+
+
+
+
+  // 📡 Données continues
   socket.on("ball_bounce", (data) => {
 
     message = `La balle a rebondi datas : ${JSON.stringify(data)}`;
@@ -192,6 +236,10 @@ io.on("connection", (socket) => {
       });
       io.emit("vibration", 200); // Vibration de 200ms
   });
+
+
+
+
 
 
 // ─────────────────────────────────────────────────────────────
