@@ -33,7 +33,7 @@ app.get("/admin", (req, res) => {
 });
 
 app.get("/draw", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/dessin_gpt.html"));
+  res.sendFile(path.join(__dirname, "../public/dessin2.html"));
 });
 
 app.use((req, res) => {

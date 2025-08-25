@@ -22,10 +22,7 @@
       --player-gray: #9ca3af;
     }
     * { box-sizing: border-box; }
-    html, body {
-      height: 100%; 
-      overflow: hidden;
-    }
+    html, body { height: 100%; }
     body {
       margin: 0;
       background: var(--bg);
@@ -76,52 +73,36 @@
       box-shadow: 0 0 0 0 rgba(255,255,255,.2);
       animation: ripple .5s ease-out forwards;
     }
-    .settings-bar {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(20, 22, 26, 0.85);
-      backdrop-filter: blur(6px);
-      padding: 6px 8px;
+    #toolbar {
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      justify-content: center;
-      align-items: center;
-      z-index: 10;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      gap: 10px;
+      background: rgba(20, 20, 20, 0.85);
+      padding: 8px 12px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      z-index: 1000;
     }
-
-    .settings-bar label {
-      font-size: 0.75rem;
-      color: var(--hint);
-    }
-
-    .settings-bar select,
-    .settings-bar input[type="color"],
-    .settings-bar input[type="range"] {
-      background: transparent;
-      color: var(--fg);
+    #toolbar select, #toolbar input {
+      background: #1e1e1e;
+      color: white;
       border: none;
-      outline: none;
-    }
-
-    .settings-bar select {
+      border-radius: 8px;
       padding: 4px 6px;
+      font-size: 14px;
+    }
+    #toolbar input[type="color"] {
+      padding: 0;
+      width: 36px;
+      height: 36px;
       border-radius: 6px;
-      background-color: rgba(255, 255, 255, 0.06);
-      color: var(--fg);
+      overflow: hidden;
     }
-
-    .settings-bar input[type="range"] {
+    #toolbar input[type="range"] {
       width: 80px;
-    }
-
-    @media (max-width: 500px) {
-      .settings-bar {
-        font-size: 0.8rem;
-      }
     }
     @keyframes ripple {
       0% { box-shadow: 0 0 0 0 rgba(255,255,255,.35); opacity: 1; }
@@ -129,28 +110,21 @@
     }
   </style>
 </head>
+<!-- Barre d'outils -->
+<div id="toolbar">
+  <select id="toolSelect">
+    <option value="brush">Traits</option>
+    <option value="glitter">Paillettes</option>
+    <option value="all">Tout</option>
+  </select>
+
+  <input type="color" id="colorPicker" value="#27F5D3">
+
+  <input type="range" id="brushSize" min="1" max="10" value="5" style="display: none;">
+</div>
+
 <body>
   <div id="stage" class="stage" aria-label="zone tactile">
-    <div class="settings-bar">
-      <div>
-        <label for="tool">Outil</label><br>
-        <select id="tool">
-          <option value="brush">Traits</option>
-          <option value="glitter">Paillettes</option>
-          <option value="all">Tout</option>
-        </select>
-      </div>
-
-      <div>
-        <label for="color">Couleur</label><br>
-        <input type="color" id="color" value="#27F5D3">
-      </div>
-
-      <div id="size-wrapper">
-        <label for="brushSize">Taille</label><br>
-        <input type="range" id="brushSize" min="1" max="10" value="5">
-      </div>
-    </div>
     <div class="hint" id="hint">touche l'écran</div>
   </div>
 
@@ -336,31 +310,28 @@
     window.addEventListener('gesturestart', (e) => e.preventDefault());
 
 
-    const toolSelect = document.getElementById('tool');
-    const colorInput = document.getElementById('color');
-    const sizeInput = document.getElementById('brushSize');
-    const sizeWrapper = document.getElementById('size-wrapper');
 
-    // Valeurs par défaut synchronisées
-    toolSelect.value = settings.tool;
-    colorInput.value = '#' + settings.color;
-    sizeInput.value = settings.brushSize;
+    /// Barre d'outils
+    const toolSelect = document.getElementById("toolSelect");
+    const colorPicker = document.getElementById("colorPicker");
+    const brushSize = document.getElementById("brushSize");
 
-    // Mise à jour des settings
-    toolSelect.addEventListener('change', () => {
+    toolSelect.addEventListener("change", () => {
       const val = toolSelect.value;
       settings.tool = val;
-      // Affiche le slider uniquement si l’outil est "traits"
-      sizeWrapper.style.display = val === 'brush' ? 'block' : 'none';
+      brushSize.style.display = (val === "brush") ? "block" : "none";
     });
 
-    colorInput.addEventListener('input', () => {
-      settings.color = colorInput.value.replace('#', '').toUpperCase();
+    colorPicker.addEventListener("input", () => {
+      settings.color = colorPicker.value.replace("#", "");
     });
 
-    sizeInput.addEventListener('input', () => {
-      settings.brushSize = parseInt(sizeInput.value);
+    brushSize.addEventListener("input", () => {
+      settings.brushSize = parseInt(brushSize.value);
     });
+
+
+
 
   </script>
 </body>
