@@ -102,6 +102,12 @@
     return "client-" + Math.random().toString(36).substr(2, 9);
     }
 
+    let settings = {
+      color: '27F5D3', // Couleur par défaut
+      brushSize: 5, // Taille du pinceau par défaut
+      tool: 'brush' // Outil par défaut
+    }
+
     // // Connexion Socket.IO (même origine par défaut). Ajustez si nécessaire.
     // const socket = typeof io !== 'undefined' ? io() : null;
 
@@ -162,12 +168,12 @@
     }
 
     // Émission au serveur
-    function emitTouch(x, y) {
+    function emitTouch(x, y, first = false, last = false  ) {
       if (!socket) return;
       socket.emit('client_action_trigger', {
         client_id: client_id,
-        action: 'touch_screen',
-        datas: { x, y }
+        action: 'dessin_touch',
+        datas: { x, y , dessin_settings ,first, last }
       });
     }
 
@@ -209,9 +215,9 @@
     let isDown = false;
     let moveThrottle = 0;
 
-    function handlePoint(pageX, pageY) {
+    function handlePoint(pageX, pageY, first = false, last=false) {
       const { x, y } = normalizeToPercent(pageX, pageY);
-      emitTouch(x, y);
+      emitTouch(x, y, first, last);
       const { left, top } = percentToPixels(x, y);
       addRipple(left, top);
       addBubble(left, top, 'var(--touch)', true);
@@ -224,6 +230,7 @@
       for (const t of e.changedTouches) handlePoint(t.clientX, t.clientY);
     }, { passive: true });
 
+
     stage.addEventListener('touchmove', (e) => {
       const now = performance.now();
       if (now - moveThrottle > 40) { // ~25 Hz pour éviter le spam
@@ -231,6 +238,8 @@
         moveThrottle = now;
       }
     }, { passive: true });
+
+
 
     stage.addEventListener('touchend', () => { isDown = false; }, { passive: true });
     stage.addEventListener('touchcancel', () => { isDown = false; }, { passive: true });
