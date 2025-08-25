@@ -227,14 +227,14 @@
     // Touch
     stage.addEventListener('touchstart', (e) => {
       isDown = true;
-      for (const t of e.changedTouches) handlePoint(t.clientX, t.clientY);
+      for (const t of e.changedTouches) handlePoint(t.clientX, t.clientY, true, false);
     }, { passive: true });
 
 
     stage.addEventListener('touchmove', (e) => {
       const now = performance.now();
       if (now - moveThrottle > 40) { // ~25 Hz pour éviter le spam
-        for (const t of e.touches) handlePoint(t.clientX, t.clientY);
+        for (const t of e.touches) handlePoint(t.clientX, t.clientY, false, false);
         moveThrottle = now;
       }
     }, { passive: true });
@@ -247,14 +247,14 @@
     // Souris (desktop)
     stage.addEventListener('mousedown', (e) => {
       isDown = true;
-      handlePoint(e.clientX, e.clientY);
+      handlePoint(e.clientX, e.clientY, true, false);
     });
 
     window.addEventListener('mousemove', (e) => {
       if (!isDown) return;
       const now = performance.now();
       if (now - moveThrottle > 40) { // ~25 Hz
-        handlePoint(e.clientX, e.clientY);
+        handlePoint(e.clientX, e.clientY, false, false);
         moveThrottle = now;
       }
     });
