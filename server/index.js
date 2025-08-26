@@ -108,24 +108,28 @@ io.on("connection", (socket) => {
   })
 
 
-function getSocketIdById(targetId) {
+function getSocketIdsById(targetId) {
     console.log("Recherche de l'ID de socket pour l'ID client :", targetId);
+
+    adminSocketIds = [];
+
     for (const [socketId, clientData] of Object.entries(clientsData)) {
         if (clientData["client_id"] === targetId) {
             console.log("Socket trouvé :", socketId);
-            return socketId;
+            adminSocketIds.push(socketId);
+            //return socketId;
         }
     }
-    console.log("Aucun socket trouvé pour l'ID client :", targetId);
-    console.log("Contenu de clientsData :", clientsData);
-    return null;
+    //console.log("Aucun socket trouvé pour l'ID client :", targetId);
+    //console.log("Contenu de clientsData :", clientsData);
+    return adminSocketIds;
 }
 
   // ⚡ Action personnalisée
   socket.on("client_action_trigger", ({ client_id , action, datas={}}) => {
     console.log("⚡ Action demandée par", client_id, " - action :", action, " datas:", datas);
 
-    const adminSocketId = getSocketIdById("id-admin1234");
+    const adminSocketId = getSocketIdsById("id-admin1234");
 
 
     if (action === "touch_screen") {
@@ -137,11 +141,16 @@ function getSocketIdById(targetId) {
 
 
 
-    if (adminSocketId) {
+    if (adminSocketId.length > 0) {
 
-      io.to(adminSocketId).emit("client_action_trigger", { client_id, action, datas });
+      for (let i=0; i<adminSocketId.length; i++) {
+          console.log("Envoi de l'action à l'admin socket ID : %s", adminSocketId[i]);
+          io.to(adminSocketId[i]).emit("client_action_trigger", { client_id, action, datas });
+          io.to(adminSocketId[i]).emit("action_triggered_by", { client_id: client_id });
+      }
 
-      io.to(adminSocketId).emit("action_triggered_by", { client_id: client_id });
+     // io.to(adminSocketId).emit("client_action_trigger", { client_id, action, datas });
+      //io.to(adminSocketId).emit("action_triggered_by", { client_id: client_id });
     } else {
       console.log("❌ Pas d'admin connecté pour relayer l'action");
       console.log(clientsData);
