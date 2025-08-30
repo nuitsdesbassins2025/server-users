@@ -33,7 +33,10 @@ app.get("/admin", (req, res) => {
 });
 
 app.get("/draw", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/dessin2.html"));
+  res.sendFile(path.join(__dirname, "../public/dessin.html"));
+});
+app.get("/move", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/player.html"));
 });
 
 app.use((req, res) => {
