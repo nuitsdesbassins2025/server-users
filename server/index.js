@@ -38,7 +38,9 @@ app.get("/draw", (req, res) => {
 app.get("/move", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/player.html"));
 });
-
+app.get("/audio", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/sound_record.html"));
+});
 app.use((req, res) => {
   res.status(404).send("Page non trouvée");
 });
@@ -76,6 +78,21 @@ io.on("connection", (socket) => {
   });
 
 
+  socket.on('client_transfer_medias', (payload) => {
+      // payload = { client_id, data_type: 'sound_graph'|'sound_track', datas: {...} }
+      const adminSocketId = getSocketIdsById("id-admin1234");
+
+
+    if (adminSocketId) {
+      io.to(adminSocketId).emit("clients_media", { emiter:payload.client_id, media_type:payload.data_type, media_data : payload.datas });
+
+    } else {
+      console.log("❌ Pas d'admin connecté pour recevoir le media");
+    
+    };
+      
+      socket.emit('client_datas_receveid', { client_id: payload.client_id, ok: true });
+    });
 
 
 
