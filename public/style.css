@@ -1,0 +1,63 @@
+body {
+  margin: 0;
+  background-color: #111;
+  color: white;
+  font-family: sans-serif;
+}
+
+#app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Bannière */
+#banner {
+  position: relative;
+  background-color: #444;
+  color: white;
+  padding: 10px;
+  text-align: center;
+  overflow: hidden;
+}
+
+#banner-text {
+  display: inline-block;
+  white-space: nowrap;
+  animation: scrollText 10s linear infinite;
+}
+
+@keyframes scrollText {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+.corner-btn {
+  position: absolute;
+  top: 5px;
+  background-color: #666;
+  border: none;
+  border-radius: 50%;
+  color: white;
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
+}
+
+#homeBtn { left: 5px; }
+#settingsBtn { right: 5px; }
+
+/* Zone centrale */
+#main {
+  flex: 1;
+  display: flex;
+  align-items: stretch; /* important */
+  justify-content: center;
+  background-color: #000;
+}
+
+#main canvas {
+  width: 100%;
+  height: 100%;
+  display: block; /* enlève les marges par défaut */
+}
