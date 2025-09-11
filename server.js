@@ -7,6 +7,8 @@ const { Server } = require("socket.io");
 const path = require("path");
 const fs = require("fs");
 
+const ADMIN_ID = "id-admin1234"; // ID fixe pour l'admin
+
 // ─────────────────────────────────────────────────────────────
 // 🚀 INITIALISATION DES SERVEURS EXPRESS + HTTP + SOCKET.IO
 // ─────────────────────────────────────────────────────────────
@@ -81,11 +83,26 @@ io.on("connection", (socket) => {
     }
     
     socket.emit("web_client_updated", updated_datas);
+
+    send_event_to_local_admin("web_client_updated", updated_datas);
   
   })
 
 
+  function send_event_to_local_admin(event_name, data) {
 
+    const adminSocketId = getSocketIdsById(ADMIN_ID);
+
+    if (adminSocketId.length > 0) {
+      for (let i=0; i<adminSocketId.length; i++) {
+          // console.log("Envoi de l'action à l'admin socket ID : %s", adminSocketId[i]);
+          io.to(adminSocketId[i]).emit(event_name, data);
+      }
+    } else {
+      console.error("❌ Pas d'admin connecté pour relayer l'action");
+    }
+
+  }
   
   function getSocketIdsById(targetId) {
       console.log("Recherche de l'ID de socket pour l'ID client :", targetId);
@@ -108,7 +125,7 @@ io.on("connection", (socket) => {
   socket.on("client_action_trigger", ({ client_id , player_id, client_datas, action, datas={}}) => {
     console.log("⚡ Action demandée par", client_id, " - action :", action, " datas:", datas);
 
-    const adminSocketId = getSocketIdsById("id-admin1234");
+    const adminSocketId = getSocketIdsById(ADMIN_ID);
 
 
     // if (action === "touch_screen") {
