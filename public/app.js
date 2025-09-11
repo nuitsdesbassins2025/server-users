@@ -1,3 +1,4 @@
+// import { not } from "three/webgpu";
 import { io } from "/socket.io/socket.io.esm.min.js"; // si tu veux ESM, sinon const socket=io()
 const socket = io();
 
@@ -87,7 +88,7 @@ export function get_score() {
 
 export function set_admin() {
     client_datas.is_admin = true;
-    document.getElementById("adminPanel").style.display = "block";
+    document.getElementById("adminBtn").style.display = "block";
 }
 
 
@@ -120,7 +121,26 @@ export function client_update_datas(datas) {
 });
 }
 
+// ─────────────────────────────────────────────────────────────
+// 🎮 FONCTIONS POUR LES ADMINS
+// ─────────────────────────────────────────────────────────────
 
+// Permet aux jeux de mettre à jour les données du client
+export function admin_emit_event(event_name, action="", datas={}, client_id=null, to_client_id=null) {
+
+  if (client_id === null) {
+    client_id = client_datas.client_id;
+  }
+
+  console.log("Admin event:",event_name, " - action : ", action," - datas :", datas);
+
+  socket.emit(event_name,{
+    "datas":datas,
+    "action":action,
+    "client_id":client_datas.client_id,
+    "client_datas":client_datas
+});
+}
 
 // ─────────────────────────────────────────────────────────────
 // 🕹️ GESTION DES JEUX
@@ -168,6 +188,9 @@ document.getElementById("homeBtn").addEventListener("click", () => {
 });
 document.getElementById("settingsBtn").addEventListener("click", () => {
   loadGame("reglages");
+});
+document.getElementById("adminBtn").addEventListener("click", () => {
+  loadGame("admin");
 });
 
 // lance page d’accueil

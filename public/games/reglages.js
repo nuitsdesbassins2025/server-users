@@ -1,4 +1,4 @@
-import { set_pseudo, set_color, set_player_id, client_update_datas } from "/app.js";
+import { client_update_datas, set_admin } from "/app.js";
 
 export function initGame(socket, client_datas) {
   const form = document.getElementById("settingsForm");
@@ -11,22 +11,26 @@ export function initGame(socket, client_datas) {
   colorInput.value = client_datas.color ?? "#444444";
   trackingInput.value = client_datas.player_id ?? "";
 
+  if (pseudoInput.value === "admin") {
+    set_admin();
+  }
+
+
   function handleSubmit(e) {
     e.preventDefault();
     const pseudo = pseudoInput.value.trim();
     const color = colorInput.value;
     const tracking = parseInt(trackingInput.value, 10);
 
+    if (pseudo === "admin") {
+      set_admin();
+    }
+
     var datas = {};
     if (pseudo) datas.pseudo = pseudo;
     if (color) datas.color = color;
     if (!isNaN(tracking)) datas.player_id = String(tracking);
     console.log(String(tracking))
-
-    // if (pseudo) set_pseudo(pseudo);
-    // if (color) set_color(color);
-    // if (!isNaN(tracking)) set_player_id(tracking);
-
 
 
     client_update_datas(datas);

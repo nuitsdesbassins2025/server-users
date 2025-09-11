@@ -81,27 +81,27 @@ io.on("connection", (socket) => {
         updated_datas[key] = value;
         console.log(`${key} mis à jour pour ${client_id} : ${value}`);
     }
-    
     socket.emit("web_client_updated", updated_datas);
-
     send_event_to_local_admin("web_client_updated", updated_datas);
-  
   })
 
 
-  function send_event_to_local_admin(event_name, data) {
+  socket.on("admin_game_settings", (event_datas) => {
+    console.log("Admin game settings reçu :", event_datas);
+    send_event_to_local_admin("admin_game_settings", event_datas);
+  });
+
+
+  function send_event_to_local_admin(event_name, event_datas) {
 
     const adminSocketId = getSocketIdsById(ADMIN_ID);
-
     if (adminSocketId.length > 0) {
       for (let i=0; i<adminSocketId.length; i++) {
-          // console.log("Envoi de l'action à l'admin socket ID : %s", adminSocketId[i]);
-          io.to(adminSocketId[i]).emit(event_name, data);
+        io.to(adminSocketId[i]).emit(event_name, event_datas);
       }
     } else {
       console.error("❌ Pas d'admin connecté pour relayer l'action");
     }
-
   }
   
   function getSocketIdsById(targetId) {
@@ -122,11 +122,15 @@ io.on("connection", (socket) => {
   }
 
   // ⚡ Action personnalisée
-  socket.on("client_action_trigger", ({ client_id , player_id, client_datas, action, datas={}}) => {
-    console.log("⚡ Action demandée par", client_id, " - action :", action, " datas:", datas);
+  socket.on("client_action_trigger", (event_datas) => {
+    
+    console.log("⚡ Action demandée par", event_datas.client_id, " - action :", event_datas.action, " datas:", event_datas.datas);
 
-    const adminSocketId = getSocketIdsById(ADMIN_ID);
+    send_event_to_local_admin("client_action_trigger", event_datas);
 
+
+
+/*     const adminSocketId = getSocketIdsById(ADMIN_ID);
 
     // if (action === "touch_screen") {
     //   console.log(`Le player ${client_id} a touché l'écran en (${datas.x}, ${datas.y})`);
@@ -153,7 +157,8 @@ io.on("connection", (socket) => {
         message: "pas d'admin connecté",
         notification: false,
       });
-    };
+    }; */
+
   });
 
 
