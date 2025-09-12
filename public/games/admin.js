@@ -13,6 +13,11 @@ export function initGame(socket, client_datas) {
   const toClientIdInput = document.getElementById("toClientIdInput");
   const presetBtn = document.getElementById("presetBtn");
 
+  
+  const slider = document.getElementById("playerSize");
+  const sizeValue = document.getElementById("sizeValue");
+  const presetBtn2 = document.getElementById("presetBtn2");
+
   // toggle custom fields
   eventNameSelect.addEventListener("change", () => {
     eventNameCustom.style.display = eventNameSelect.value === "custom" ? "inline-block" : "none";
@@ -63,8 +68,20 @@ export function initGame(socket, client_datas) {
     const to_client_id = toClientIdInput.value || null;
 
     admin_emit_event(eventName, action, datas, client_id, to_client_id);
-    alert("Evènement envoyé !");
+    //  alert("Evènement envoyé !");
   });
+
+  
+  // fonction qui s’exécute quand on clique sur le bouton
+  function sendSize() {
+    const val = parseInt(slider.value, 10);
+    const datas = { scale: val };
+    admin_emit_event("admin_game_settings", "set_player_scale", datas);
+    // alert("Vitesse envoyée : " + val);
+  }
+
+  presetBtn2.addEventListener("click", sendSize);
+
 
   presetBtn.addEventListener("click", () => {
     const datas = collectDatas();
