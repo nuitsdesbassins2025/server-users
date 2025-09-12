@@ -68,8 +68,8 @@ export function initGame(socket, client_datas) {
 
   presetBtn.addEventListener("click", () => {
     const datas = collectDatas();
-    admin_emit_event("admin_game_settings", "set_ball_speed", datas);
-    alert("Preset envoyé !");
+    admin_emit_event("admin_game_settings", "grid_toogle");
+    alert("grid toogle !");
   });
 
   return () => {
