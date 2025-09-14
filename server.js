@@ -31,6 +31,7 @@ app.use(express.static("public"));
 
 
 io.on("connection", (socket) => {
+  
   console.log("Client connecté");
 
   
@@ -67,6 +68,10 @@ io.on("connection", (socket) => {
         console.warn(`⚠️ Datas invalides pour ${client_id}`);
         return;
     }
+
+    const keys = Object.keys(datas);
+
+
     
     console.log(`🔄 Mise à jour des données pour ${client_id} :`, datas);
     
@@ -81,8 +86,15 @@ io.on("connection", (socket) => {
         updated_datas[key] = value;
         console.log(`${key} mis à jour pour ${client_id} : ${value}`);
     }
+
+    // Notifier le client de la mise à jour
     socket.emit("web_client_updated", updated_datas);
-    send_event_to_local_admin("web_client_updated", updated_datas);
+
+    // Notifier l'admin de la mise à jour
+    let transfer_datas = { client_id, datas: updated_datas };
+    send_event_to_local_admin("web_client_updated", transfer_datas);
+
+
   })
 
 
@@ -104,6 +116,30 @@ io.on("connection", (socket) => {
     }
   }
   
+
+  socket.on("godot_info_transfer", (datas) => {
+    console.log("Godot info transfer reçu :", datas);
+
+    if (datas.event_type === "set_tracking"){
+
+      if (datas.client_id) {
+        const targetSocketIds = getSocketIdsById(datas.client_id);
+        if (targetSocketIds.length > 0) {
+          for (let i=0; i<targetSocketIds.length; i++) {
+
+            io.to(targetSocketIds[i]).emit("web_client_updated", datas.event_datas);
+
+
+          }
+        } else {
+          console.error("❌ Pas de client connecté pour relayer l'info");
+        }
+      }
+    }
+  });
+
+
+
   function getSocketIdsById(targetId) {
       console.log("Recherche de l'ID de socket pour l'ID client :", targetId);
 

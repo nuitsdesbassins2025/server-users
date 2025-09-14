@@ -8,18 +8,47 @@
 </head>
 <body>
   <div id="app-container">
-    <!-- Bannière/cadre -->
-    <div id="banner">
-      <div id="banner-text">Bienvenue !</div>
-      <button id="homeBtn" class="corner-btn">🏠</button>
-      <button id="adminBtn" class="corner-btn">🏠</button>
 
-      <button id="settingsBtn" class="corner-btn">⚙️</button>
-    </div>
+    <!-- Boutons flottants -->
+    <button id="homeBtn" class="corner-btn left">🏠</button>
+    <button id="adminBtn" class="corner-btn right hidden">👑</button>
+    <button id="settingsBtn" class="corner-btn right">⚙️</button>
+
+    <!-- Bandeau de notification -->
+    <div id="notification-bar"></div>
+
 
     <!-- Zone centrale -->
     <div id="main"></div>
+
+
+
+
+    <!-- Voyant tracking permanent -->
+    <div id="tracking-status" class="tracking-status">
+      <span class="tracking-dot"></span>
+      <span class="tracking-text">Tracking</span>
+    </div>
+
+    <!-- Bandeau tracking -->
+    <div id="tracking-bar" class="tracking-bar">
+      <div class="tracking-content">
+        <div id="tracking-title">Deplacez vous sur la zone de jeu et entrez le code devant vous</div>
+        <div id="tracking-code">
+          <input type="text" maxlength="1" readonly>
+          <input type="text" maxlength="1" readonly>
+          <input type="text" maxlength="1" readonly>
+          <input type="text" maxlength="1" readonly>
+        </div>
+        <div id="tracking-keypad"></div>
+        <button id="tracking-reset" class="hidden">Réinitialiser le suivi</button>
+      </div>
+    </div>
+
+
   </div>
+
+
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="app.js" type="module"></script>

@@ -17,7 +17,12 @@ let client_datas = {
   client_id,
   player_id: null,
   score: 0,
+  tracking_code:"",
+  tracking_status : "missing"  // missing, lost, error, valid
 };
+
+// let trackingStatus = "missing"; // missing, lost, error, valid
+ let trackingCode = "";
 
 // ─────────────────────────────────────────────────────────────
 // 🗂️ INITIALISATION DU CLIENT
@@ -28,11 +33,23 @@ let client_datas = {
 // ou alors de créer un nouvel utilisateur si il n'existe pas
 socket.emit("client_request_datas", {client_id:client_id});
 
+      showNotification({
+        title: "Pseudo manquant",
+        message: "Enregistrez-vous pour débuter le jeu",
+        actionText: "Aller aux réglages",
+        actionCallback: () => loadGame("reglages")
+        // pas de duration → reste affiché
+      });
+
 
 // Mise à jour des données du client
 // Si l'utilisateur a déjà des données stockées, on les récupère
 // Appel les fonctions pour la mise à jour de l'interface si certaines données sont présentes
 socket.on("web_client_updated", ( updated_datas ) => {
+
+  updateTrackingUI();
+
+  
 
     console.log("Données mises à jour reçues :", updated_datas);
   for (const [key, value] of Object.entries(updated_datas)) {
@@ -49,13 +66,40 @@ socket.on("web_client_updated", ( updated_datas ) => {
     }
     if (key === "player_id") {
         set_player_id(value);
+
+
+        trackingStatus = "valid"; // tu peux aussi attendre un retour serveur avant de valider
+        updateTrackingUI();
     }
-}
+    if (key === "tracking_status") {
+        set_tracking_status(value);
+    }
+
+    if (key === "tracking_code") {
+        client_datas.tracking_code = value;
+        set_player_id(value);
+        updateInputs();}
+
+  }
+      if (!client_datas.pseudo) {
+      showNotification({
+        title: "Pseudo manquant",
+        message: "Enregistrez-vous pour débuter le jeu",
+        actionText: "Aller aux réglages",
+        actionCallback: () => loadGame("reglages")
+        // pas de duration → reste affiché
+      });
+
+  }
   return;
 });
 
 
 
+function set_tracking_status(status) {
+    client_datas.tracking_status = status;
+    updateTrackingUI();
+  }
 
 // ─────────────────────────────────────────────────────────────
 // 🔧 GETTERS & SETTERS
@@ -70,11 +114,13 @@ export function set_pseudo(pseudo) {
 }
 export function set_player_id(id) {
   client_datas.player_id = id;
+
 }
+
 export function set_color(color) {
-  client_datas.color = color;
-  document.getElementById("banner").style.backgroundColor = color;
-}
+   client_datas.color = color;
+//   document.getElementById("banner").style.backgroundColor = color;
+ }
 export function set_banner_text(text) {
   document.getElementById("banner-text").textContent = text;
 }
@@ -90,7 +136,6 @@ export function set_admin() {
     client_datas.is_admin = true;
     document.getElementById("adminBtn").style.display = "block";
 }
-
 
 
 
@@ -113,6 +158,8 @@ export function action_trigger(action_type, action_datas) {
 
 // Permet aux jeux de mettre à jour les données du client
 export function client_update_datas(datas) {
+
+
   console.log("Update_datas:", datas);
   socket.emit("client_update_datas",{
     "datas":datas,
@@ -181,11 +228,22 @@ export async function loadGame(gameName) {
 
 // Boutons home & settings
 document.getElementById("homeBtn").addEventListener("click", () => {
+
+
+  // lance page d’accueil
+  document.getElementById("main").innerHTML =
+    "<div class='loading-msg'>Veuillez patienter, lancement du jeu…</div>";
+
   document.getElementById("main").innerHTML = "<h2>Accueil</h2><button id='btnClic'>Jeu clic</button> <button id='btnDraw'>Jeu dessin</button> <button id='btnMove'>debug Move</button>";
   document.getElementById("btnClic").addEventListener("click", () => loadGame("clic"));
   document.getElementById("btnDraw").addEventListener("click", () => loadGame("dessin"));
   document.getElementById("btnMove").addEventListener("click", () => loadGame("move"));
+
 });
+
+
+
+
 document.getElementById("settingsBtn").addEventListener("click", () => {
   loadGame("reglages");
 });
@@ -195,3 +253,136 @@ document.getElementById("adminBtn").addEventListener("click", () => {
 
 // lance page d’accueil
 document.getElementById("homeBtn").click();
+
+
+
+export function showNotification({
+  message,
+  title = null,
+  actionText = null,
+  actionCallback = null,
+  duration = null
+}) {
+  const bar = document.getElementById("notification-bar");
+
+  let html = `<button class="notif-close">&times;</button>`;
+  if (title) html += `<div class="notif-title">${title}</div>`;
+  html += `<div class="notif-message">${message}</div>`;
+  if (actionText && actionCallback) {
+    html += `<div class="notif-actions"><button class="notif-btn">${actionText}</button></div>`;
+  }
+
+  bar.innerHTML = html;
+
+  // mesure de la hauteur
+  bar.classList.add("show"); // déclenche l'animation
+  const height = bar.offsetHeight;
+
+  // applique le nouveau top directement → transition
+  document.querySelectorAll('.corner-btn').forEach(btn => {
+    btn.style.top = (height + 10) + 'px';
+  });
+
+  // bouton fermer
+  bar.querySelector(".notif-close").addEventListener("click", () => {
+    hideNotification();
+  });
+
+  if (actionText && actionCallback) {
+    bar.querySelector(".notif-btn").addEventListener("click", () => {
+      actionCallback();
+    });
+  }
+
+  if (duration !== null) {
+    setTimeout(() => hideNotification(), duration);
+  }
+}
+
+export function hideNotification() {
+  const bar = document.getElementById("notification-bar");
+  bar.classList.remove("show");
+
+  // remet les boutons à la position d’origine → transition
+  document.querySelectorAll('.corner-btn').forEach(btn => {
+    btn.style.top = '10px';
+  });
+}
+
+
+function updateTrackingUI() {
+  const dot = document.querySelector('.tracking-dot');
+  const text = document.querySelector('.tracking-text');
+  const resetBtn = document.getElementById("tracking-reset");
+
+  switch(client_datas.tracking_status) {
+    case "missing":
+      dot.style.backgroundColor = "red";
+      text.textContent = "Tracking manquant";
+      resetBtn.classList.add("hidden");
+      break;
+    case "lost":
+      dot.style.backgroundColor = "orange";
+      text.textContent = "Tracking perdu";
+      resetBtn.classList.remove("hidden");
+      break;
+    case "error":
+      dot.style.backgroundColor = "red";
+      text.textContent = "Erreur tracking";
+      resetBtn.classList.add("hidden");
+      break;
+    case "valid":
+      dot.style.backgroundColor = "green";
+      text.textContent = "Tracking actif";
+      resetBtn.classList.remove("hidden");
+      break;
+
+    default:
+  }
+}
+
+function updateTrackingStatusPosition() {
+  const bar = document.getElementById("tracking-bar");
+  const status = document.getElementById("tracking-status");
+  const height = bar.classList.contains("show") ? bar.offsetHeight : 0;
+  status.style.bottom = (10 + height) + "px";
+}
+
+
+document.getElementById("tracking-status").addEventListener("click", () => {
+  const bar = document.getElementById("tracking-bar");
+  bar.classList.toggle("show");
+  updateTrackingStatusPosition();
+
+});
+
+
+const keypad = document.getElementById("tracking-keypad");
+for (let i = 0; i < 10; i++) {
+  const btn = document.createElement("button");
+  btn.textContent = i;
+  btn.addEventListener("click", () => {
+    if (trackingCode.length < 4) {
+      trackingCode += i;
+      updateInputs();
+      if (trackingCode.length === 4) {
+        // envoyer event
+        console.log("Envoi du code de tracking :", trackingCode);
+        client_update_datas( { tracking_code : trackingCode });
+        // replie le bandeau
+        document.getElementById("tracking-bar").classList.remove("show");
+
+        trackingCode = "";
+        updateInputs();
+      }
+    }
+  });
+  keypad.appendChild(btn);
+}
+
+function updateInputs() {
+  const inputs = document.querySelectorAll('#tracking-code input');
+  inputs.forEach((input, index) => {
+    input.value = trackingCode[index] || "";
+  });
+}

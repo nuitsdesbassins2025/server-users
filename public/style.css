@@ -9,16 +9,17 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  position: relative;
 }
 
 /* Bannière */
 #banner {
   position: relative;
-  background-color: #444;
+  background: linear-gradient(90deg, #222, #333);
   color: white;
   padding: 10px;
   text-align: center;
-  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
 }
 
 #banner-text {
@@ -32,17 +33,79 @@ body {
   100% { transform: translateX(-100%); }
 }
 
+/* Boutons flottants */
 .corner-btn {
-  position: absolute;
-  top: 5px;
-  background-color: #666;
+  position: fixed;
+  top: 10px;
+  background: #ff4081;
   border: none;
   border-radius: 50%;
   color: white;
-  width: 40px;
-  height: 40px;
-  font-size: 20px;
+  width: 45px;
+  height: 45px;
+  font-size: 22px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  cursor: pointer;
+  transition: top 0.4s ease-in-out; /* même durée que le bandeau */
+  z-index: 1001;
 }
+.corner-btn:hover { transform: scale(1.1); }
+
+.corner-btn.left { left: 10px; }
+.corner-btn.right { right: 10px; }
+.corner-btn.hidden { display: none; }
+
+/* Bandeau notification */
+#notification-bar {
+  position: fixed;
+  top: -100px;
+  left: 0;
+  width: 100%;
+  background: #222;
+  color: #fff;
+  padding: 15px;
+  font-size: 1rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+  transition: top 0.4s ease-in-out;
+  z-index: 1000;
+  box-sizing: border-box;
+}
+
+#notification-bar.show {
+  top: 0;
+}
+
+#notification-bar .notif-close {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+#notification-bar .notif-title {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+#notification-bar .notif-actions {
+  margin-top: 10px;
+}
+
+#notification-bar .notif-btn {
+  background-color: #ff4081;
+  border: none;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
 
 #homeBtn { left: 5px; }
 #settingsBtn { right: 5px; }
@@ -52,7 +115,7 @@ body {
 #main {
   flex: 1;
   display: flex;
-  align-items: stretch; /* important */
+  align-items: center;
   justify-content: center;
   background-color: #000;
 }
@@ -62,3 +125,146 @@ body {
   height: 100%;
   display: block; /* enlève les marges par défaut */
 }
+
+.loading-msg {
+  text-align: center;
+  font-size: 1.4rem;
+  padding: 2rem;
+  color: #ffdd57; /* couleur fun */
+  animation: blink 1.5s infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0.5; }
+}
+
+.popup-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.popup-content {
+  background: #222;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  max-width: 80%;
+  box-shadow: 0 0 15px #ff4081;
+}
+
+.popup-content p {
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+}
+
+.popup-content button {
+  background-color: #ff4081;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* Décalage des boutons flottants quand bandeau affiché */
+body.with-notif .corner-btn {
+  top: 70px; /* décale les boutons */
+}
+
+
+/* Voyant permanent */
+.tracking-status {
+  position: fixed;
+  bottom: calc(10px + 250px); /* 250px = hauteur du bandeau ouvert */
+  left: 10px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  z-index: 1001;
+  transition: bottom 0.4s ease-in-out;
+}
+
+.tracking-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: red; /* par défaut missing */
+  margin-right: 6px;
+}
+.tracking-text {
+  font-size: 0.9rem;
+  color: white;
+}
+
+/* Bandeau tracking */
+.tracking-bar {
+  position: fixed;
+  bottom: -250px; /* caché */
+  left: 0;
+  width: 100%;
+  background: #222;
+  color: #fff;
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.4);
+  transition: bottom 0.4s ease-in-out;
+  z-index: 1000;
+  padding: 10px;
+  box-sizing: border-box;
+}
+.tracking-bar.show {
+  bottom: 0;
+}
+
+.tracking-content {
+  text-align: center;
+}
+
+#tracking-title {
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+#tracking-code input {
+  width: 35px;
+  height: 35px;
+  margin: 3px;
+  text-align: center;
+  font-size: 1.4rem;
+  background: #333;
+  border: 1px solid #555;
+  color: white;
+}
+
+#tracking-keypad {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+  margin-top: 8px;
+}
+
+#tracking-keypad button {
+  background: #555;
+  color: white;
+  border: none;
+  padding: 10px;
+  font-size: 1.2rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#tracking-reset {
+  margin-top: 8px;
+  background: #ff4081;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.hidden { display: none; }

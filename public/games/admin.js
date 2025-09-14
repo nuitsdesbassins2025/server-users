@@ -18,6 +18,11 @@ export function initGame(socket, client_datas) {
   const sizeValue = document.getElementById("sizeValue");
   const presetBtn2 = document.getElementById("presetBtn2");
 
+
+  
+
+
+
   // toggle custom fields
   eventNameSelect.addEventListener("change", () => {
     eventNameCustom.style.display = eventNameSelect.value === "custom" ? "inline-block" : "none";
