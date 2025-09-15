@@ -18,7 +18,8 @@ let client_datas = {
   player_id: null,
   score: 0,
   tracking_code:"",
-  tracking_status : "missing"  // missing, lost, error, valid
+  tracking_status : "missing",  // missing, lost, error, valid
+  ever_tracked: false
 };
 
 // let trackingStatus = "missing"; // missing, lost, error, valid
@@ -109,6 +110,9 @@ socket.on("web_client_updated", ( updated_datas ) => {
 function set_tracking_status(status) {
     console.log("Setting tracking status to", status);
     client_datas.tracking_status = status;
+    if (status === "valid") {
+        client_datas.ever_tracked = true;
+    }
     updateTrackingUI();
   }
 
@@ -253,6 +257,20 @@ document.getElementById("homeBtn").addEventListener("click", () => {
 });
 
 
+function updateMainHeight() {
+  const notifBar = document.getElementById("notification-bar");
+  const trackingBar = document.getElementById("tracking-bar");
+
+  const notifHeight = notifBar.classList.contains("show") ? notifBar.offsetHeight : 0;
+  const trackingHeight = trackingBar.classList.contains("show") ? trackingBar.offsetHeight : 0;
+
+  // Définit les variables CSS sur :root (ou sur body)
+  document.documentElement.style.setProperty("--notif-height", notifHeight + "px");
+  document.documentElement.style.setProperty("--tracking-height", trackingHeight + "px");
+  console.log("Updated main height:", notifHeight, trackingHeight);
+}
+
+
 
 
 document.getElementById("settingsBtn").addEventListener("click", () => {
@@ -324,6 +342,8 @@ export function showNotification({
   if (duration !== null) {
     setTimeout(() => hideNotification(), duration);
   }
+
+  updateMainHeight();
 }
 
 export function hideNotification() {
@@ -334,9 +354,10 @@ export function hideNotification() {
   document.querySelectorAll('.corner-btn').forEach(btn => {
     btn.style.top = '10px';
   });
+  updateMainHeight();
 }
 
-function updateTrackingUI() {
+export function updateTrackingUI() {
   const dot = document.querySelector('.tracking-dot');
   const text = document.querySelector('.tracking-text');
   const resetBtn = document.getElementById("tracking-reset");
@@ -393,6 +414,7 @@ function updateTrackingUI() {
   }
 
   updateTrackingStatusPosition();
+  updateMainHeight();
 }
 
 
@@ -455,3 +477,8 @@ function toggleElement(el, show) {
   }
 }
 
+
+export function toggleCode(show) {
+  const trackingCodeDiv = document.getElementById("tracking-code");
+  toggleElement(trackingCodeDiv, show);
+}
