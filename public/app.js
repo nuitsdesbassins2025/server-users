@@ -24,22 +24,31 @@ let client_datas = {
 // let trackingStatus = "missing"; // missing, lost, error, valid
  let trackingCode = "";
 
+
 // ─────────────────────────────────────────────────────────────
 // 🗂️ INITIALISATION DU CLIENT
 // ─────────────────────────────────────────────────────────────
 
+function initialisationClient() {
 // Envoi de la demande de données utilisateur au serveur
 // ça permet de récupérer les données stockées pour l'utilisateur
 // ou alors de créer un nouvel utilisateur si il n'existe pas
-socket.emit("client_request_datas", {client_id:client_id});
 
-      showNotification({
-        title: "Pseudo manquant",
-        message: "Enregistrez-vous pour débuter le jeu",
-        actionText: "Aller aux réglages",
-        actionCallback: () => loadGame("reglages")
-        // pas de duration → reste affiché
-      });
+
+  socket.emit("client_request_datas", {client_id:client_id});
+
+
+}
+
+initialisationClient();
+
+showNotification({
+  title: "Pseudo manquant",
+  message: "Enregistrez-vous pour débuter le jeu",
+  actionText: "Aller aux réglages",
+  actionCallback: () => loadGame("reglages")
+  // pas de duration → reste affiché
+});
 
 
 // Mise à jour des données du client
@@ -49,7 +58,7 @@ socket.on("web_client_updated", ( updated_datas ) => {
 
   updateTrackingUI();
 
-  
+
 
     console.log("Données mises à jour reçues :", updated_datas);
   for (const [key, value] of Object.entries(updated_datas)) {
@@ -65,7 +74,7 @@ socket.on("web_client_updated", ( updated_datas ) => {
     //   document.getElementById("colorPicker").value = value;
     }
     if (key === "player_id") {
-      
+
         set_player_id(value);
         // trackingStatus = "valid"; // tu peux aussi attendre un retour serveur avant de valider
         // updateTrackingUI();
@@ -257,6 +266,22 @@ document.getElementById("adminBtn").addEventListener("click", () => {
 document.getElementById("homeBtn").click();
 
 
+document.getElementById("tracking-reset").addEventListener("click", () => {
+  reset_tracking();
+});
+
+function reset_tracking() {
+  console.log("Reset tracking");
+  client_datas.tracking_code = "";
+  client_datas.tracking_status = "missing";
+  client_update_datas( { tracking_code : "", tracking_status: "missing" });
+  trackingCode = "";
+
+  updateTrackingUI();
+}
+
+
+
 
 export function showNotification({
   message,
@@ -311,37 +336,65 @@ export function hideNotification() {
   });
 }
 
-
 function updateTrackingUI() {
   const dot = document.querySelector('.tracking-dot');
   const text = document.querySelector('.tracking-text');
   const resetBtn = document.getElementById("tracking-reset");
 
+  const trackingTitle = document.getElementById("tracking-title");
+  const trackingCodeDiv = document.getElementById("tracking-code");
+  const trackingBar = document.getElementById("tracking-bar");
+
   switch(client_datas.tracking_status) {
     case "missing":
+      trackingBar.classList.add("show");
+      if (trackingTitle) trackingTitle.textContent = "Déplacez-vous sur la zone de jeu et entrez le code devant vous";
       dot.style.backgroundColor = "red";
       text.textContent = "Tracking manquant";
-      resetBtn.classList.add("hidden");
+      toggleElement(resetBtn, false);           // bouton reset masqué
+      toggleElement(trackingCodeDiv, true);     // code visible
       break;
+
     case "lost":
+      trackingBar.classList.add("show");
+      if (trackingTitle) trackingTitle.textContent = "Tracking perdu, rallentissez ou réinitialisez le suivit";
       dot.style.backgroundColor = "orange";
       text.textContent = "Tracking perdu";
-      resetBtn.classList.remove("hidden");
+      toggleElement(resetBtn, true);            // bouton reset visible
+      toggleElement(trackingCodeDiv, false);    // code masqué
       break;
+
     case "error":
+      trackingBar.classList.add("show");
+      if (trackingTitle) trackingTitle.textContent = "Numéro invalide, réessayez";
       dot.style.backgroundColor = "red";
       text.textContent = "Erreur tracking";
-      resetBtn.classList.add("hidden");
+      toggleElement(resetBtn, false);           // bouton reset masqué
+      toggleElement(trackingCodeDiv, true);     // code visible
       break;
+
     case "valid":
+      trackingBar.classList.remove("show");
+      if (trackingTitle) trackingTitle.textContent = "Tracking actif";
       dot.style.backgroundColor = "green";
       text.textContent = "Tracking actif";
-      resetBtn.classList.remove("hidden");
+      toggleElement(resetBtn, true);            // bouton reset visible
+      toggleElement(trackingCodeDiv, false);    // code masqué
       break;
 
     default:
+      trackingBar.classList.add("show");
+      if (trackingTitle) trackingTitle.textContent = "Déplacez-vous sur la zone de jeu et entrez le code devant vous";
+      dot.style.backgroundColor = "red";
+      text.textContent = "Tracking manquant";
+      toggleElement(resetBtn, false);           // bouton reset masqué
+      toggleElement(trackingCodeDiv, true);     // code visible
+      
   }
+
+  updateTrackingStatusPosition();
 }
+
 
 function updateTrackingStatusPosition() {
   const bar = document.getElementById("tracking-bar");
@@ -388,3 +441,17 @@ function updateInputs() {
     input.value = trackingCode[index] || "";
   });
 }
+
+
+function toggleElement(el, show) {
+  // tu peux passer directement l’élément ou son sélecteur CSS
+  const elem = (typeof el === "string") ? document.querySelector(el) : el;
+  if (!elem) return;
+
+  if (show) {
+    elem.classList.remove("hidden");
+  } else {
+    elem.classList.add("hidden");
+  }
+}
+
