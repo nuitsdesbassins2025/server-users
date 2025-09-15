@@ -65,14 +65,15 @@ socket.on("web_client_updated", ( updated_datas ) => {
     //   document.getElementById("colorPicker").value = value;
     }
     if (key === "player_id") {
+      
         set_player_id(value);
+        // trackingStatus = "valid"; // tu peux aussi attendre un retour serveur avant de valider
+        // updateTrackingUI();
 
-
-        trackingStatus = "valid"; // tu peux aussi attendre un retour serveur avant de valider
-        updateTrackingUI();
     }
     if (key === "tracking_status") {
         set_tracking_status(value);
+
     }
 
     if (key === "tracking_code") {
@@ -97,6 +98,7 @@ socket.on("web_client_updated", ( updated_datas ) => {
 
 
 function set_tracking_status(status) {
+    console.log("Setting tracking status to", status);
     client_datas.tracking_status = status;
     updateTrackingUI();
   }

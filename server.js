@@ -55,47 +55,58 @@ io.on("connection", (socket) => {
   });
 
   
+// Écoute de la mise à jour des données d’un utilisateur
+socket.on("client_update_datas", ({ datas, client_id }) => {
 
-  // Mettre à jour les données d’un utilisateur
-  socket.on("client_update_datas", ({  datas, client_id }) => {
-  
-    // vérification de l'existence du client
-    if (!clients[client_id]) {
-        clients[client_id] = clients[client_id] || {};
-    }
-    
+    // Validation basique
     if (!datas || typeof datas !== "object") {
         console.warn(`⚠️ Datas invalides pour ${client_id}`);
         return;
     }
 
-    const keys = Object.keys(datas);
-
-
-    
     console.log(`🔄 Mise à jour des données pour ${client_id} :`, datas);
-    
-    // Mise à jour des données du client
-    // clients[client_id] = clients[client_id] || {}; // Assure que l'objet client existe ou en initialise un vide
-    
-    let updated_datas = {};
-    
-    // Mise à jour des données du client
-    for (const [key, value] of Object.entries(datas)) {
-        clients[client_id][key] = value;
-        updated_datas[key] = value;
-        console.log(`${key} mis à jour pour ${client_id} : ${value}`);
+    // On délègue la mise à jour et la notification
+    update_server_clients_list(client_id, datas);
+});
+
+
+
+// ---- Fonction centralisée ----
+function update_server_clients_list(client_id, datas, notify_admin = true) {
+  // Vérifier existence
+  if (!clients[client_id]) {
+    clients[client_id] = {};
+  }
+
+  let updated_datas = {};
+
+  // Mettre à jour l'objet client
+  for (const [key, value] of Object.entries(datas)) {
+    clients[client_id][key] = value;
+    updated_datas[key] = value;
+    console.log(`${key} mis à jour pour ${client_id} : ${value}`);
+  }
+
+  // Diffuser la mise à jour aux sockets liés à ce client
+  const targetSocketIds = getSocketIdsById(client_id);
+
+  if (targetSocketIds.length > 0) {
+    for (let i = 0; i < targetSocketIds.length; i++) {
+      io.to(targetSocketIds[i]).emit("web_client_updated", updated_datas);
     }
+  } else {
+    console.error("❌ Pas de client connecté pour relayer l'info");
+  }
 
-    // Notifier le client de la mise à jour
-    socket.emit("web_client_updated", updated_datas);
 
+  if (notify_admin) {
     // Notifier l'admin de la mise à jour
     let transfer_datas = { client_id, datas: updated_datas };
     send_event_to_local_admin("web_client_updated", transfer_datas);
+  }
+}
 
 
-  })
 
 
   socket.on("admin_game_settings", (event_datas) => {
@@ -105,7 +116,6 @@ io.on("connection", (socket) => {
 
 
   function send_event_to_local_admin(event_name, event_datas) {
-
     const adminSocketId = getSocketIdsById(ADMIN_ID);
     if (adminSocketId.length > 0) {
       for (let i=0; i<adminSocketId.length; i++) {
@@ -119,22 +129,9 @@ io.on("connection", (socket) => {
 
   socket.on("godot_info_transfer", (datas) => {
     console.log("Godot info transfer reçu :", datas);
-
     if (datas.event_type === "set_tracking"){
-
-      if (datas.client_id) {
-        const targetSocketIds = getSocketIdsById(datas.client_id);
-        if (targetSocketIds.length > 0) {
-          for (let i=0; i<targetSocketIds.length; i++) {
-
-            io.to(targetSocketIds[i]).emit("web_client_updated", datas.event_datas);
-
-
-          }
-        } else {
-          console.error("❌ Pas de client connecté pour relayer l'info");
-        }
-      }
+      // On met à jour les datas du client sans relayer à l'admin (évite les boucles)
+      update_server_clients_list(datas.client_id, datas.event_datas, false)
     }
   });
 
@@ -161,41 +158,10 @@ io.on("connection", (socket) => {
   socket.on("client_action_trigger", (event_datas) => {
     
     console.log("⚡ Action demandée par", event_datas.client_id, " - action :", event_datas.action, " datas:", event_datas.datas);
-
     send_event_to_local_admin("client_action_trigger", event_datas);
 
-
-
-/*     const adminSocketId = getSocketIdsById(ADMIN_ID);
-
-    // if (action === "touch_screen") {
-    //   console.log(`Le player ${client_id} a touché l'écran en (${datas.x}, ${datas.y})`);
-    //   io.emit("clients_touch", { emiter:client_id, client_datas, x: datas.x, y: datas.y, color_code: clients[client_id]?.color || "#ff4081" });
-      
-    //   message = `Le player a touché : ${JSON.stringify(datas)}`;
-    // }
-
-    if (adminSocketId.length > 0) {
-
-      for (let i=0; i<adminSocketId.length; i++) {
-          console.log("Envoi de l'action à l'admin socket ID : %s", adminSocketId[i]);
-          io.to(adminSocketId[i]).emit("client_action_trigger", { client_id, client_datas, action, datas });
-          // io.to(adminSocketId[i]).emit("action_triggered_by", { client_id: client_id });
-      }
-
-     // io.to(adminSocketId).emit("client_action_trigger", { client_id, action, datas });
-      //io.to(adminSocketId).emit("action_triggered_by", { client_id: client_id });
-    } else {
-      console.log("❌ Pas d'admin connecté pour relayer l'action");
-      console.log(clientsData);
-      socket.emit("emit_message", {
-        target: "all",
-        message: "pas d'admin connecté",
-        notification: false,
-      });
-    }; */
-
   });
+
 
 
 
