@@ -169,6 +169,7 @@ function isLightColor(hex) {
     ctx.fillStyle = currentColor;
     ctx.fillRect(xPx, yPx, 2, 2);
 
+    
     // normalisation
     const longSide = Math.max(canvas.width, canvas.height);
     const shortSide = Math.min(canvas.width, canvas.height);
@@ -232,8 +233,18 @@ function isLightColor(hex) {
     first = true;
   }
 
+  
+function touchEnd(e) {
+  e.preventDefault();
+  first = true;
+  previousPointx = null;
+  previousPointy = null;
+  action_trigger("touch_end", {});
+}
+
   canvas.addEventListener("touchmove", handleTouch);
   canvas.addEventListener("touchstart", set_first);
+  canvas.addEventListener("touchend", touchEnd);
 
   // petit marqueur temporaire
   function drawTemporaryMark(x, y) {
@@ -272,7 +283,6 @@ function drawTemporaryLine(x1, y1, x2, y2) {
     ctx.clearRect(minX, minY, maxX - minX, maxY - minY);
   }, 2000);
 }
-
 
 
 
