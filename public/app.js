@@ -223,6 +223,12 @@ export async function loadGame(gameName) {
   const html = await fetch(`/games/${gameName}.html`).then(r => r.text());
   document.getElementById("main").innerHTML = html;
 
+  // charge CSS spécifique
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = `/games/${gameName}.css?cacheBust=${Date.now()}`;
+  document.head.appendChild(link);
+
   // charge JS
   const script = document.createElement("script");
   script.src = `/games/${gameName}.js?cacheBust=${Date.now()}`;
@@ -414,7 +420,6 @@ export function updateTrackingUI() {
   }
 
   updateTrackingStatusPosition();
-  updateMainHeight();
 }
 
 
@@ -423,6 +428,7 @@ function updateTrackingStatusPosition() {
   const status = document.getElementById("tracking-status");
   const height = bar.classList.contains("show") ? bar.offsetHeight : 0;
   status.style.bottom = (10 + height) + "px";
+  updateMainHeight();
 }
 
 

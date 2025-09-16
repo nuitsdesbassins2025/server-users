@@ -63,10 +63,15 @@ body {
 
 /* Bandeau notification */
 #notification-bar {
-  position: fixed;
+
+
+  /* position: fixed;
   top: -100px;
   left: 0;
-  width: 100%;
+  width: 100%; */
+
+  display: none;
+
   background: #222;
   color: #fff;
   padding: 15px;
@@ -78,7 +83,8 @@ body {
 }
 
 #notification-bar.show {
-  top: 0;
+  display: block;
+  /* top: 0; */
 }
 
 #notification-bar .notif-close {
@@ -124,13 +130,16 @@ body {
   align-items: center;
   justify-content: center;
   background-color: #000;
-  transition: padding-top 0.3s ease, padding-bottom 0.3s ease;
+  /* transition: padding-top 0.3s ease, padding-bottom 0.3s ease; */
+
+  border: 12px solid #fff;
+
   
   overflow-y: auto;
   /* calcule la hauteur disponible */
-  padding-top: var(--notif-height);
+  /* padding-top: var(--notif-height);
   padding-bottom: var(--tracking-height);
-  height: 100vh;
+  height: 100vh; */
 }
 
 #main canvas {
@@ -217,9 +226,12 @@ body.with-notif .corner-btn {
 
 /* Bandeau tracking */
 .tracking-bar {
-  position: fixed;
-  bottom: -250px; /* caché */
-  left: 0;
+  /* position: fixed;
+  
+  bottom: -250px; 
+  left: 0; */
+ display: none;
+
   width: 100%;
   background: #222;
   color: #fff;
@@ -230,7 +242,8 @@ body.with-notif .corner-btn {
   box-sizing: border-box;
 }
 .tracking-bar.show {
-  bottom: 0;
+   display: block;
+  /* bottom: 0; */
 }
 
 .tracking-content {
@@ -294,22 +307,22 @@ body.with-notif .corner-btn {
 
 /* Partie pour le dessin */
 
-#canvas-wrapper {
+/* #canvas-wrapper {
   position: relative;
   width: 100%;
   max-width: 100%;
   margin: auto;
   background: #333;
-  /* ratio du cadre */
+
   aspect-ratio: 1280 / 720;
-  border: 3px solid white; /* cadre */
+  border: 3px solid white; 
 }
 
 #drawing-canvas {
   width: 100%;
   height: 100%;
   display: block;
-}
+} */
 
 #palette {
   display: grid;
@@ -324,16 +337,7 @@ body.with-notif .corner-btn {
   cursor: pointer;
 }
 
-.floating-btn {
-  position: fixed;
-  bottom: 20px;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  border: none;
-  font-size: 28px;
-  z-index: 1001;
-}
+
 
 #tool-btn { left: 20px; }
 #color-btn { right: 20px; }
@@ -352,8 +356,12 @@ body.with-notif .corner-btn {
   z-index: 1002;
 }
 
-.popup.hidden { display: none; }
-
+/* Par cette règle */
+.popup:not(.open) {
+  opacity: 0;
+  pointer-events: none;
+  display: block; /* Gardez le display block mais masquez avec opacity */
+}
 .popup button {
   padding: 12px;
   font-size: 18px;
@@ -363,15 +371,16 @@ body.with-notif .corner-btn {
   color: white;
 }
 
-#canvas-wrapper {
+.draw-floating-btn {
+  background: #ff4081;
+  color: white;
   display: flex;
-  justify-content: center;
   align-items: center;
-  background: #333;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  cursor: pointer;
 }
 
-#drawing-canvas {
-  border: 4px solid white;  /* BORDURE visible */
-  background: black;
-  display: block;
+#color-btn {
+  border: 2px solid white; /* Pour mieux voir le bouton de couleur */
 }

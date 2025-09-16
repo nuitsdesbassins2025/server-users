@@ -1,1 +1,20 @@
-<canvas id="drawCanvas" width="100%" height="100%" style="border:1px solid white;touch-action:none;"></canvas>
+<div id="canvas-wrapper">
+  <canvas id="drawing-canvas"></canvas>
+
+  
+  <div class="draw-floating-container">
+    <button id="tool-btn" class="draw-floating-btn">✏️</button>
+    <button id="color-btn" class="draw-floating-btn" style="background:#FF8000;"></button>
+  </div>
+</div>
+
+<div id="tool-popup" class="popup">
+  <button data-tool="pencil">✏️ Crayon</button>
+  <button data-tool="neon">🛸 Néon</button>
+  <button data-tool="ball">⚽ Balles</button>
+  <button data-tool="eraser">🩹 Gomme</button>
+</div>
+
+<div id="color-popup" class="popup hidden">
+  <!-- on remplit les couleurs en JS -->
+</div>

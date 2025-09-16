@@ -1,85 +1,286 @@
-import { action_trigger } from "/app.js";
+import { action_trigger, showNotification, updateTrackingUI } from "/app.js";
 
 export function initGame(socket, client_datas) {
-  const canvas = document.getElementById("drawCanvas");
+
+  const gameSize = { width: 1280, height: 720 };
+  const canvas = document.getElementById("drawing-canvas");
   const ctx = canvas.getContext("2d");
-  ctx.strokeStyle = "white";
-  ctx.lineWidth = 2;
 
-  let settings = {
-    color: '27F5D3', // Couleur par défaut
-    brushSize: 5, // Taille du pinceau par défaut
-    tool: 'brush' // Outil par défaut
+  // ────────────── REDIMENSIONNEMENT DU CANVAS ──────────────
+
+function resizeCanvas() {
+  const wrapper = document.getElementById('canvas-wrapper');
+  const canvas = document.getElementById('drawing-canvas');
+
+  
+  // Espace dispo
+  const w = wrapper.clientWidth;
+  const h = wrapper.clientHeight;
+
+  // ratio horizontal ou vertical selon l'espace
+  let ratioW, ratioH;
+  if (w >= h) {
+    // paysage : 16/9
+    ratioW = 16;
+    ratioH = 9;
+  } else {
+    // portrait : 9/16
+    ratioW = 9;
+    ratioH = 16;
+  }
+  const ratio = ratioW / ratioH;
+
+
+  const wrapperWidth = wrapper.clientWidth;
+  const wrapperHeight = wrapper.clientHeight;
+
+  let width = wrapperWidth;
+  let height = width / ratio;
+
+  if (height > wrapperHeight) {
+    height = wrapperHeight;
+    width = height * ratio;
   }
 
+  // taille affichée (CSS)
+  canvas.style.width = width + 'px';
+  canvas.style.height = height + 'px';
+
+  // taille interne (pour dessin)
+  canvas.width = width;
+  canvas.height = height;
+}
 
 
-  function resizeCanvas() {
-    // récupère la taille visible du conteneur
-    const parent = canvas.parentElement;
-    canvas.width = parent.clientWidth;
-    canvas.height = parent.clientHeight;
-  }
 
-  // appel au départ + on écoute les resize
-  resizeCanvas();
+
   window.addEventListener("resize", resizeCanvas);
+  resizeCanvas();
 
+  // ────────────── OUTILS ET COULEURS ──────────────
+  let currentTool = "pencil";
+  let currentColor = "#FF8000";
+
+
+
+
+  // bouton couleur
+  const colorBtn = document.getElementById("color-btn");
+  const colorPopup = document.getElementById("color-popup");
+  const toolBtn = document.getElementById("tool-btn");
+  const toolPopup = document.getElementById("tool-popup");
+
+  // bouton outil
+  toolBtn.addEventListener("click", () => {
+    const open = toolPopup.classList.toggle("open");
+    
+    // accessibilité
+    toolBtn.setAttribute("aria-expanded", open ? "true" : "false");
+    
+    // ferme le popup couleurs si besoin
+    colorPopup.classList.remove("open");
+    colorBtn.setAttribute("aria-expanded", "false");
+  });
+
+  colorBtn.addEventListener("click", () => {
+    // bascule l'état "open"
+    const open = colorPopup.classList.toggle("open");
+
+    // accessibilité
+    colorBtn.setAttribute("aria-expanded", open ? "true" : "false");
+
+    // ferme le popup outils si besoin
+    toolPopup.classList.remove("open");
+    toolBtn.setAttribute("aria-expanded", "false");
+  });
+
+  // outils dans popup
+  document.querySelectorAll("#tool-popup button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      currentTool = btn.dataset.tool;
+      toolBtn.textContent = btn.textContent.split(" ")[0];
+      toolPopup.classList.remove("open");
+      toolBtn.setAttribute("aria-expanded", "false");
+    });
+  });
+
+const colors = [
+  "#FFFFFF","#FF0000","#00FF00","#0000FF",
+  "#FFFF00","#FF00FF","#00FFFF","#FF8000",
+  "#8000FF","#0080FF","#FF0080","#008080"
+];
+
+// nettoie d'abord si nécessaire
+colorPopup.innerHTML = "";
+
+// crée boutons avec stagger (delay) pour l'animation
+colors.forEach((color, idx) => {
+  const cbtn = document.createElement("button");
+  cbtn.className = "color-choice";
+  cbtn.style.backgroundColor = color;
+  cbtn.setAttribute("aria-label", `Couleur ${color}`);
+  // si couleur claire, on met une petite bordure pour visibilité
+  if (isLightColor(color)) cbtn.classList.add("light");
+
+  // stagger: delay croissant pour chaque bouton
+  // 40ms * index => subtil, pas trop long
+  cbtn.style.transitionDelay = `${idx * 40}ms`;
+
+  cbtn.addEventListener("click", () => {
+    currentColor = color;
+    document.getElementById("color-btn").style.backgroundColor = color;
+    // fermer avec une petite latence pour laisser le press visible
+    colorPopup.classList.remove("open");
+  });
+
+  colorPopup.appendChild(cbtn);
+});
+
+
+function isLightColor(hex) {
+  // convertit #RRGGBB -> lumière relative
+  const c = hex.replace('#','');
+  const r = parseInt(c.substring(0,2),16);
+  const g = parseInt(c.substring(2,4),16);
+  const b = parseInt(c.substring(4,6),16);
+  // luminance relative
+  const luminance = 0.2126*r + 0.7152*g + 0.0722*b;
+  return luminance > 200; // seuil à ajuster
+}
+
+  // ────────────── NOTIFICATION TRACKING SI PAS TRACKÉ ──────────────
+  if (client_datas.ever_tracked === false) {
+    showNotification({
+      title: "Tracking manquant",
+      message: "Vous devez avoir été identifié avant de dessiner",
+      actionText: "Ouvrir le suivi",
+      actionCallback: () => updateTrackingUI()
+      // pas de duration → reste affiché
+    });
+  }
+
+  // ────────────── DESSIN ──────────────
   let first = true;
+  let previousPointx = null;
+  let previousPointy = null;
 
   function drawPoint(xPx, yPx) {
-    ctx.fillStyle = "white";
+    // trace sur le canvas client
+    ctx.fillStyle = currentColor;
     ctx.fillRect(xPx, yPx, 2, 2);
 
-    
+    // normalisation
     const longSide = Math.max(canvas.width, canvas.height);
     const shortSide = Math.min(canvas.width, canvas.height);
-
-    // origine haut droit
     const xFromRight = canvas.width - xPx;
     const yFromTop = yPx;
-
     const yNorm = (xFromRight / shortSide) * 100;
     const xNorm = (yFromTop / longSide) * 100;
 
-
+    // envoi au serveur
     let action_datas = {
-      drawing_tool: "point",
+      drawing_tool: currentTool,
       x: xNorm,
       y: yNorm,
-      settings,
+      settings: {
+        color: currentColor,
+        brushSize: 5,
+        tool: currentTool
+      },
       first
-  };
+    };
 
-    action_trigger("dessin_touch", action_datas );
+    action_trigger("dessin_touch", action_datas);
 
+    if (!first) {
+      drawTemporaryLine(previousPointx, previousPointy, xPx, yPx);
+
+    }
     first = false;
+    previousPointx = xPx;
+    previousPointy = yPx;
+
+    // affiche un marqueur temporaire côté client
+    // drawTemporaryMark(xPx, yPx);
+
+
+  }
+
+  // convertit les coordonnées touch/mouse en coordonnées internes du canvas
+  function getCanvasCoords(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    const touches = e.touches || [e];
+    const coords = [];
+    for (let i = 0; i < touches.length; i++) {
+      const x = (touches[i].clientX - rect.left) * scaleX;
+      const y = (touches[i].clientY - rect.top) * scaleY;
+      coords.push({ x, y });
+    }
+    return coords;
   }
 
   function handleTouch(e) {
     e.preventDefault();
-    const rect = canvas.getBoundingClientRect();
-    const touches = e.touches;
-    for (let i = 0; i < touches.length; i++) {
-      const x = touches[i].clientX - rect.left;
-      const y = touches[i].clientY - rect.top;
-      drawPoint(x, y);
-    }
+    const coords = getCanvasCoords(e);
+    coords.forEach(({x, y}) => drawPoint(x, y));
   }
 
   function set_first() {
     first = true;
   }
 
-
   canvas.addEventListener("touchmove", handleTouch);
   canvas.addEventListener("touchstart", set_first);
 
+  // petit marqueur temporaire
+  function drawTemporaryMark(x, y) {
+    const radius = 4;
+    ctx.fillStyle = currentColor;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    setTimeout(() => {
+      ctx.clearRect(x - radius, y - radius, radius * 2, radius * 2);
+    }, 2000);
+  }
+
+  // petit trait temporaire
+function drawTemporaryLine(x1, y1, x2, y2) {
+  const lineWidth = 3; // largeur du trait
+  ctx.strokeStyle = currentColor;
+  ctx.lineWidth = lineWidth;
+  ctx.lineCap = 'round';
+
+  // tracer la ligne
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+
+  // zone à effacer ensuite (boîte englobante + marge)
+  const minX = Math.min(x1, x2) - lineWidth;
+  const minY = Math.min(y1, y2) - lineWidth;
+  const maxX = Math.max(x1, x2) + lineWidth;
+  const maxY = Math.max(y1, y2) + lineWidth;
+
+  // efface après 2 secondes
+  setTimeout(() => {
+    ctx.clearRect(minX, minY, maxX - minX, maxY - minY);
+  }, 2000);
+}
+
+
+
+
+  // ────────────── CLEANUP LORS DU UNLOAD DU JEU ──────────────
   return () => {
     canvas.removeEventListener("touchmove", handleTouch);
     canvas.removeEventListener("touchstart", set_first);
     window.removeEventListener("resize", resizeCanvas);
-
   };
 }
 window.initGame = initGame;
