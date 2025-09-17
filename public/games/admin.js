@@ -1,103 +1,102 @@
-// on importe admin_emit_event depuis app.js
 import { admin_emit_event } from "/app.js";
 
-export function initGame(socket, client_datas) {
-  const form = document.getElementById("adminForm");
-  const eventNameSelect = document.getElementById("eventNameSelect");
-  const eventNameCustom = document.getElementById("eventNameCustom");
-  const actionSelect = document.getElementById("actionSelect");
-  const actionCustom = document.getElementById("actionCustom");
-  const addDataRowBtn = document.getElementById("addDataRow");
-  const datasContainer = document.getElementById("datasContainer");
-  const clientIdInput = document.getElementById("clientIdInput");
-  const toClientIdInput = document.getElementById("toClientIdInput");
-  const presetBtn = document.getElementById("presetBtn");
+export function initGame() {
+  const buttonContainer = document.getElementById('button-container');
 
-  
-  const slider = document.getElementById("playerSize");
-  const sizeValue = document.getElementById("sizeValue");
-  const presetBtn2 = document.getElementById("presetBtn2");
+  // Function to create and append a button and its data inputs to the container
+  function createButton(button) {
+    const btnContainer = document.createElement('div');
+    btnContainer.style.marginBottom = '10px';
 
+    const btn = document.createElement('button');
+    btn.textContent = button.label;
 
-  
+    // Create a container for input elements associated with the button
+    const inputContainer = document.createElement('div');
+    inputContainer.style.marginTop = '5px';
 
+    // Create input elements based on the datas array
+    let inputElements = {}; // Store created input elements to access their values later
+    if (button.datas && Array.isArray(button.datas)) {
+      button.datas.forEach(data => {
+        const label = document.createElement('label');
+        label.textContent = `${data.name}: `;
+        let input;
 
+        if (data.type === 'range') {
+          input = document.createElement('input');
+          input.type = 'range';
+          input.min = data.min || 0;
+          input.max = data.max || 100;
+          input.value = data.value || 50;
+          const span = document.createElement('span');
+          span.textContent = input.value;
+          input.addEventListener('input', () => {
+            span.textContent = input.value;
+          });
+          label.appendChild(span);
+        } else if (data.type === 'text') {
+          input = document.createElement('input');
+          input.type = 'text';
+          input.placeholder = data.name;
+        } else if (data.type === 'number') {
+          input = document.createElement('input');
+          input.type = 'number';
+          input.placeholder = data.name;
+        }
+        label.appendChild(input);
+        inputContainer.appendChild(label);
+        inputContainer.appendChild(document.createElement('br'));
+        inputElements[data.name] = input; // Store input reference
+      });
+    }
 
-  // toggle custom fields
-  eventNameSelect.addEventListener("change", () => {
-    eventNameCustom.style.display = eventNameSelect.value === "custom" ? "inline-block" : "none";
-  });
-  actionSelect.addEventListener("change", () => {
-    actionCustom.style.display = actionSelect.value === "custom" ? "inline-block" : "none";
-  });
+    // On button click, collect input values and emit event
+    btn.onclick = () => {
+      const datas = {}; // Initialize datas object
 
-  addDataRowBtn.addEventListener("click", () => {
-    const row = document.createElement("div");
-    row.className = "data-row";
-    row.style = "display:flex;gap:5px;margin-bottom:5px;";
-    row.innerHTML = `
-      <input type="text" class="data-key" placeholder="clé">
-      <input type="text" class="data-value" placeholder="valeur">
-      <select class="data-type">
-        <option value="undefined">undefined</option>
-        <option value="int">int</option>
-        <option value="float">float</option>
-        <option value="str">str</option>
-      </select>`;
-    datasContainer.appendChild(row);
-  });
+      // Collect values from input elements
+      Object.keys(inputElements).forEach(key => {
+        const input = inputElements[key];
+        if (input.type === 'range' || input.type === 'number') {
+          datas[key] = parseFloat(input.value);
+        } else {
+          datas[key] = input.value;
+        }
+      });
+      admin_emit_event("admin_game_settings",button.id, datas);
+    };
 
-  function collectDatas() {
-    const rows = datasContainer.querySelectorAll(".data-row");
-    const obj = {};
-    rows.forEach(r => {
-      const key = r.querySelector(".data-key").value.trim();
-      let val = r.querySelector(".data-value").value.trim();
-      const type = r.querySelector(".data-type").value;
-      if (!key) return;
-      if (type === "int") val = parseInt(val, 10);
-      else if (type === "float") val = parseFloat(val);
-      else if (type === "undefined") val = undefined;
-      // otherwise string
-      obj[key] = val;
-    });
-    return obj;
+    btnContainer.appendChild(btn);
+    btnContainer.appendChild(inputContainer);
+    buttonContainer.appendChild(btnContainer);
   }
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const eventName = eventNameSelect.value === "custom" ? eventNameCustom.value : eventNameSelect.value;
-    const action = actionSelect.value === "custom" ? actionCustom.value : actionSelect.value;
-    const datas = collectDatas();
-    const client_id = clientIdInput.value || null;
-    const to_client_id = toClientIdInput.value || null;
+  // Define the buttons needed
+  var buttons_needed = [
+    {id:"grid_toogle", label:"Grille On/Off"},
+    {id:"clear_drawings", label:"Effacer le dessin"},
+    {id:"clear_balls", label:"Effacer les balles"},
+    {id:"reset_game", label:"Reset jeu"},
+    {id:"set_player_scale", label:"taille des joueurs",
+      datas: [{name: "scale", type: "range", min: 10, max: 200, value:50}]
+    },
+    {id:"toogle_player_text", label:"player id / player pos"},
+    {id:"set_ball_size", label:"taille de la balle",
+      datas: [{name: "scale", type: "range", min: 10, max: 200, value:50}]
+    },
+    {id:"custom_text", label:"Texte personnalisé",
+      datas: [{name: "text_value", type: "text"}]
+    },
+    {id:"custom_number", label:"Nombre personnalisé",
+      datas: [{name: "number_value", type: "number"}]
+    }
+  ];
 
-    admin_emit_event(eventName, action, datas, client_id, to_client_id);
-    //  alert("Evènement envoyé !");
-  });
-
-  
-  // fonction qui s’exécute quand on clique sur le bouton
-  function sendSize() {
-    const val = parseInt(slider.value, 10);
-    const datas = { scale: val };
-    admin_emit_event("admin_game_settings", "set_player_scale", datas);
-    // alert("Vitesse envoyée : " + val);
-  }
-
-  presetBtn2.addEventListener("click", sendSize);
+  // Generate buttons dynamically
+  buttons_needed.forEach(button => createButton(button));
 
 
-  presetBtn.addEventListener("click", () => {
-    const datas = collectDatas();
-    admin_emit_event("admin_game_settings", "grid_toogle");
-    alert("grid toogle !");
-  });
-
-  return () => {
-    form.removeEventListener("submit", () => {});
-    presetBtn.removeEventListener("click", () => {});
-  };
 }
 
 window.initGame = initGame;
