@@ -34,12 +34,16 @@ function resizeCanvas() {
   const wrapperWidth = wrapper.clientWidth;
   const wrapperHeight = wrapper.clientHeight;
 
-  let width = wrapperWidth;
-  let height = width / ratio;
+    console.log(wrapperHeight)
+  // calcule la taille maximale en gardant le ratio
+  let margin = 0.95 // marge 5%
+
+  let width = wrapperWidth*margin;
+  let height = width / ratio*margin;
 
   if (height > wrapperHeight) {
-    height = wrapperHeight;
-    width = height * ratio;
+    height = wrapperHeight *margin;
+    width = height * ratio*margin;
   }
 
   // taille affichée (CSS)
