@@ -274,6 +274,10 @@ function updateMainHeight() {
   document.documentElement.style.setProperty("--notif-height", notifHeight + "px");
   document.documentElement.style.setProperty("--tracking-height", trackingHeight + "px");
   console.log("Updated main height:", notifHeight, trackingHeight);
+
+  // force un resize pour les jeux qui en ont besoin
+  window.dispatchEvent(new Event('resize'));
+
 }
 
 
