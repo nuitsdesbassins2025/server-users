@@ -7,6 +7,7 @@
   background: #111; /* facultatif */
   overflow: hidden;
   position: relative;
+  padding: 10px; /* espace autour du canvas */
 }
 
 /* ratio 16/9 par exemple */
@@ -14,8 +15,9 @@
   max-width: 100%;
   max-height: 100%;
   aspect-ratio: 9 / 16; /* ratio fixe */
-  background: #fff; /* pour voir */
+  background: #000000; /* pour voir */
   display: block;
+  border: 2px solid white;
 }
 
 
