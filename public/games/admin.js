@@ -78,6 +78,8 @@ export function initGame() {
     {id:"clear_drawings", label:"Effacer le dessin"},
     {id:"clear_balls", label:"Effacer les balles"},
     {id:"reset_game", label:"Reset jeu"},
+    {id:"spawn_ball", label:"add one ball"},
+    {id:"remove_big_balls", label:"add one enlever big ball"},
     {id:"set_player_scale", label:"taille des joueurs",
       datas: [{name: "scale", type: "range", min: 10, max: 200, value:50}]
     },
