@@ -7,7 +7,13 @@ let client_id = localStorage.getItem("userId") || generateId();
 localStorage.setItem("userId", client_id);
 
 function generateId() {
+  if (crypto.randomUUID) {
     return crypto.randomUUID();
+  }
+  // Fallback : générer un UUID v4 "maison"
+  return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+  );
 }
 
 // Données client
@@ -15,11 +21,12 @@ let client_datas = {
   pseudo: null,
   color: null,
   client_id,
-  player_id: null,
+  player_id: "",
   score: 0,
   tracking_code:"",
   tracking_status : "missing",  // missing, lost, error, valid
-  ever_tracked: false
+  ever_tracked: false,
+  shield_ready:true
 };
 
 // let trackingStatus = "missing"; // missing, lost, error, valid
@@ -89,9 +96,17 @@ socket.on("web_client_updated", ( updated_datas ) => {
     if (key === "tracking_code") {
         client_datas.tracking_code = value;
         set_player_id(value);
-        updateInputs();}
-
+        updateInputs();
+      }
+    if (key === "shield_ready") {
+        client_datas.shield_ready = value;
+        console.log("shied_ready");
+        if (value) {
+          window.dispatchEvent(new Event('shied_ready'));
+        }
+        
   }
+}
       if (!client_datas.pseudo) {
       showNotification({
         title: "Pseudo manquant",
@@ -105,6 +120,11 @@ socket.on("web_client_updated", ( updated_datas ) => {
   return;
 });
 
+function activateShield() {
+  client_datas.shield_ready = true;
+  console.log("shield ready");
+  window.dispatchEvent(new Event('shield_ready'));
+}
 
 
 function set_tracking_status(status) {
@@ -112,6 +132,7 @@ function set_tracking_status(status) {
     client_datas.tracking_status = status;
     if (status === "valid") {
         client_datas.ever_tracked = true;
+        activateShield();
     }
     updateTrackingUI();
   }
@@ -279,6 +300,7 @@ function updateMainHeight() {
   window.dispatchEvent(new Event('resize'));
 
 }
+
 
 
 
