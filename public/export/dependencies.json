@@ -1,0 +1,34 @@
+[
+    {
+        "id": "bouclier00",
+        "file": "media/shield1.wav"
+    },
+    {
+        "id": "bonus",
+        "file": "media/bonus1.wav"
+    },
+    {
+        "id": "ballejoueur",
+        "file": "media/bip01.wav"
+    },
+    {
+        "id": "bpp01",
+        "file": "media/pingpong_pitch_01.wav"
+    },
+    {
+        "id": "pp02",
+        "file": "media/pingpong_pitch_02.wav"
+    },
+    {
+        "id": "pp03",
+        "file": "media/pingpong_pitch_03.wav"
+    },
+    {
+        "id": "pp04",
+        "file": "media/pingpong_pitch_04.wav"
+    },
+    {
+        "id": "pp05",
+        "file": "media/pingpong_pitch_05.wav"
+    }
+]
