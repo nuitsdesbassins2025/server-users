@@ -75,7 +75,7 @@ function resizeCanvas() {
 
   const shieldBtn = document.getElementById("shield-btn");
  
-  shieldBtn.addEventListener("click", handleShield());
+  shieldBtn.addEventListener("click", handleShield);
 
   function handleShield() {
     console.log("handleShield");
