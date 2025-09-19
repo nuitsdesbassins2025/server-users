@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  
   <!-- Couleur barre d'adresse Android -->
   <meta name="theme-color" content="#121212">
   <meta name="msapplication-TileColor" content="#121212">
@@ -20,13 +20,14 @@
   <title>Dopamine</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <div id="app-container">
 
     <!-- Boutons flottants -->
-    <button id="homeBtn" class="corner-btn left">🏠</button>
-    <button id="adminBtn" class="corner-btn right hidden">👑</button>
-    <button id="settingsBtn" class="corner-btn right">⚙️</button>
+    <button type="button" id="homeBtn" class="corner-btn left">🏠</button>
+    <button type="button" id="adminBtn" class="corner-btn right hidden">👑</button>
+    <button type="button" id="settingsBtn" class="corner-btn right">⚙️</button>
 
     <!-- Bandeau de notification -->
     <div id="notification-bar"></div>
@@ -54,9 +55,8 @@
           <input type="text" maxlength="1" readonly>
           <input type="text" maxlength="1" readonly>
         </div>
-        <button id="tracking-reset" class="hidden">Réinitialiser le suivi</button>
+        <button type="button" id="tracking-reset" class="hidden">Réinitialiser le suivi</button>
         <div id="tracking-keypad"></div>
-        
       </div>
     </div>
 
@@ -67,5 +67,7 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="app.js" type="module"></script>
+  <script src="rnbo.js" type="module"></script>
 </body>
+
 </html>
