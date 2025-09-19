@@ -11,7 +11,7 @@ export function initGame(socket, client_datas) {
   colorInput.value = client_datas.color ?? "#444444";
   trackingInput.value = client_datas.player_id ?? "";
 
-  if (pseudoInput.value === "admin") {
+  if (pseudoInput.value === "admin-ndb1") {
     set_admin();
   }
 
@@ -22,7 +22,7 @@ export function initGame(socket, client_datas) {
     const color = colorInput.value;
     const tracking = parseInt(trackingInput.value, 10);
 
-    if (pseudo === "admin") {
+    if (pseudo === "admin-ndb1") {
       set_admin();
     }
 
