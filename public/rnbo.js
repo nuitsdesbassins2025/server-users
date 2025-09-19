@@ -141,13 +141,12 @@ function loadRNBOScript(version) {
     });
 }
 
-function triggerEvent(type, x = 0.5, device) {
-    if (!["mur", "bouclier"].includes(type)) {
+function triggerEvent(type, device) {
+    if (!["bouclier", "bonus", "balle", "joueur"].includes(type)) {
         return console.warn("Type non reconnu:", type);
     }
     const now = RNBO.TimeNow;
     const pan = Math.max(0, Math.min(1, x)) * 2 - 1;
-    device.scheduleEvent(new RNBO.MessageEvent(now, `pan_${type}`, [pan]));
     device.scheduleEvent(new RNBO.MessageEvent(now, type, [1]));
     console.log("🎯 Event envoyé :", `${type}`, `${x}`);
 }
