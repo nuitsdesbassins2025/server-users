@@ -1,4 +1,6 @@
-let device, context, x;
+import { io } from "socket.io-client";
+
+let context;
 
 async function initRNBO() {
 
@@ -105,25 +107,9 @@ async function initRNBO() {
         console.log("Audio context resumed");
     };
 
-    // Bouton utilisateur
-    document.getElementById("play").addEventListener("click", async () => {
-        if (!context || context.state === "suspended") {
-            await context?.resume();
-        }
-
-        if (!device) {
-            await loadRNBO();
-        }
-
-        triggerEvent("bouclier", x, device);
-        console.log("🛡️ Bouclier déclenché");
-    });
-
     // Receive Outport Message for Inport Feedback
     device.messageEvent.subscribe((ev) => {
         console.log(`Receive message ${ev.tag}: ${ev.payload}`);
-
-        if (ev.tag === "5") console.log("from the bouclier inport");
     });
 }
 
@@ -141,16 +127,34 @@ function loadRNBOScript(version) {
     });
 }
 
-function triggerEvent(type, device) {
-    if (!["bouclier", "bonus", "balle", "joueur"].includes(type)) {
-        return console.warn("Type non reconnu:", type);
-    }
-    const now = RNBO.TimeNow;
-    const pan = Math.max(0, Math.min(1, x)) * 2 - 1;
-    device.scheduleEvent(new RNBO.MessageEvent(now, type, [1]));
-    console.log("🎯 Event envoyé :", `${type}`, `${x}`);
-}
-
-
 // Au chargement
 initRNBO();
+
+
+import { io } from "/socket.io/socket.io.esm.min.js"; // si tu veux ESM, sinon const socket=io()
+const socket = io();
+
+socket.on("web_client_updated", (updated_datas) => {
+    for (const [key, value] of Object.entries(updated_datas)) {
+        client_datas[key] = value;
+        console.log(`${key} mis à jour : ${value}`);
+
+        switch (key) {
+            case "shield_ready":
+                device.scheduleEvent(new RNBO.MessageEvent(now, "bouclier", [1]));
+                break;
+
+            case "player_bonus":
+                device.scheduleEvent(new RNBO.MessageEvent(now, "bonus", [value]));
+                break;
+
+            case "player_ball":
+                device.scheduleEvent(new RNBO.MessageEvent(now, "ball", [value]));
+                break;
+
+            default:
+                // aucun traitement particulier
+                break;
+        }
+    }
+});
