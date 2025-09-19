@@ -80,6 +80,7 @@ export function initGame() {
     {id:"reset_game", label:"Reset jeu"},
     {id:"spawn_ball", label:"add one ball"},
     {id:"remove_big_balls", label:"add one enlever big ball"},
+    {id:"hide_players", label:"cacher/montrer les joueurs"},
     {id:"set_player_scale", label:"taille des joueurs",
       datas: [{name: "scale", type: "range", min: 10, max: 200, value:50}]
     },
