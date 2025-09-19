@@ -201,13 +201,10 @@ function isLightColor(hex) {
       drawTemporaryLine(previousPointx, previousPointy, xPx, yPx);
 
     }
+
     first = false;
     previousPointx = xPx;
     previousPointy = yPx;
-
-    // affiche un marqueur temporaire côté client
-    // drawTemporaryMark(xPx, yPx);
-
 
   }
 
@@ -227,13 +224,22 @@ function isLightColor(hex) {
     return coords;
   }
 
-  function handleTouch(e) {
-    e.preventDefault();
-    const coords = getCanvasCoords(e);
-    coords.forEach(({x, y}) => drawPoint(x, y));
-  }
 
-  function set_first() {
+  let lastCall = 0; // moment du dernier appel
+  const fps = 20;
+  const interval = 1000 / fps; // 20 fois/seconde = 50 ms
+  
+ function handleTouch(e) {
+  const now = Date.now();
+  if (now - lastCall < interval) return; // trop tôt, on ignore
+  lastCall = now;
+
+  e.preventDefault();
+  const coords = getCanvasCoords(e);
+  coords.forEach(({x, y}) => drawPoint(x, y));
+}
+
+function set_first() {
     first = true;
   }
 
