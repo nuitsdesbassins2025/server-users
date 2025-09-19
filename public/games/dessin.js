@@ -1,4 +1,4 @@
-import { action_trigger, showNotification, updateTrackingUI } from "/app.js";
+import { action_trigger, showNotification, updateTrackingUI, client_update_datas } from "/app.js";
 
 export function initGame(socket, client_datas) {
 
@@ -89,9 +89,7 @@ function resizeCanvas() {
     }
 
 
-    let action_datas = { score: score };
-    action_trigger("touch_screen", action_datas);
-    client_update_datas({ score: score });
+    action_trigger("touch_screen", {});
   }
 
   function reinitialize_shield() {
@@ -101,10 +99,9 @@ function resizeCanvas() {
   }
 
   function trigger_shied() {
-    let action_datas = { score: score };
+    let action_datas = {  };
     action_trigger("trigger_shield", action_datas);
     shieldBtn.disabled = true;
-    client_update_datas({ score: score });
   }
 
     window.addEventListener('shield_ready', reinitialize_shield);
