@@ -40,6 +40,10 @@
 #color-btn {
   right: 10px;
 }
+#shield-btn {
+  left: 50%;
+  transform: translateX(-50%);
+}
 
 
 /* popup de palette */
