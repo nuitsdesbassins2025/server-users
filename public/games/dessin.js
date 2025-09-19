@@ -226,9 +226,9 @@ function isLightColor(hex) {
 
 
   let lastCall = 0; // moment du dernier appel
-  const fps = 20;
+  const fps = 50;
   const interval = 1000 / fps; // 20 fois/seconde = 50 ms
-  
+
  function handleTouch(e) {
   const now = Date.now();
   if (now - lastCall < interval) return; // trop tôt, on ignore

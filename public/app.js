@@ -3,7 +3,28 @@ import { io } from "/socket.io/socket.io.esm.min.js"; // si tu veux ESM, sinon c
 const socket = io();
 
 
-let client_id = localStorage.getItem("userId") || generateId();
+
+
+let client_id;
+
+if (localStorage.getItem("userId")) {
+  // si quelque chose est stocké
+  client_id = localStorage.getItem("userId");
+} else {
+  // sinon on génère un nouvel id
+  client_id = generateId();
+
+  showNotification({
+    title: "Bienvenue dans Dopamine !",
+    message: "Déplacez-vous vers la zone de jeu et entrez le code devant vous",
+    actionText: "Amusez vous bien !",
+    actionCallback: () => hideNotification()
+  });
+  
+
+}
+
+
 localStorage.setItem("userId", client_id);
 
 function generateId() {
@@ -50,13 +71,6 @@ function initialisationClient() {
 
 initialisationClient();
 
-showNotification({
-  title: "Pseudo manquant",
-  message: "Enregistrez-vous pour débuter le jeu",
-  actionText: "Aller aux réglages",
-  actionCallback: () => loadGame("reglages")
-  // pas de duration → reste affiché
-});
 
 
 // Mise à jour des données du client
