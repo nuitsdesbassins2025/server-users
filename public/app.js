@@ -122,7 +122,7 @@ socket.on("web_client_updated", ( updated_datas ) => {
   }
 }
       if (!client_datas.pseudo) {
-        pass
+      
 
   }
   return;
@@ -277,7 +277,7 @@ export async function loadGame(gameName) {
 // ─────────────────────────────────────────────────────────────
 
 // Boutons home & settings
-document.getElementById("homeBtn").addEventListener("click", () => {
+/* document.getElementById("homeBtn").addEventListener("click", () => {
 
 
   // lance page d’accueil
@@ -289,7 +289,7 @@ document.getElementById("homeBtn").addEventListener("click", () => {
   document.getElementById("btnDraw").addEventListener("click", () => loadGame("dessin"));
   document.getElementById("btnMove").addEventListener("click", () => loadGame("move"));
 
-});
+}); */
 
 loadGame("dessin")
 

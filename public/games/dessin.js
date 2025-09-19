@@ -73,6 +73,44 @@ function resizeCanvas() {
   const toolBtn = document.getElementById("tool-btn");
   const toolPopup = document.getElementById("tool-popup");
 
+  const shieldBtn = document.getElementById("shield-btn");
+ 
+  shieldBtn.addEventListener("click", handleShield());
+
+  function handleShield() {
+    console.log("handleShield");
+
+    if (client_datas.shield_ready) {
+      console.log("shield triggered");
+      trigger_shied()
+      client_update_datas({ shield_ready: false });
+    } else {
+
+    }
+
+
+    let action_datas = { score: score };
+    action_trigger("touch_screen", action_datas);
+    client_update_datas({ score: score });
+  }
+
+  function reinitialize_shield() {
+    console.log("shied_ready event received");
+    shieldBtn.disabled = false;
+    textEl.textContent = "Bouclier actif ! Touche l'écran pour l'activer";
+  }
+
+  function trigger_shied() {
+    let action_datas = { score: score };
+    action_trigger("trigger_shield", action_datas);
+    shieldBtn.disabled = true;
+    client_update_datas({ score: score });
+  }
+
+    window.addEventListener('shield_ready', reinitialize_shield);
+
+
+
   // bouton outil
   toolBtn.addEventListener("click", () => {
     const open = toolPopup.classList.toggle("open");
