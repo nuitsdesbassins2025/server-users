@@ -1,6 +1,6 @@
-import { io } from "socket.io-client";
+import { io } from "/socket.io/socket.io.esm.min.js";
 
-let context;
+let device, context;
 
 async function initRNBO() {
 
@@ -131,12 +131,24 @@ function loadRNBOScript(version) {
 initRNBO();
 
 
-import { io } from "/socket.io/socket.io.esm.min.js"; // si tu veux ESM, sinon const socket=io()
-const socket = io();
+// ---------------------
+// Socket.io
+// ---------------------
+
+const socket = io("http://localhost:5000", { transports: ["websocket"] }); // 🔌
+
+socket.on("connect", () => {
+    console.log("✅ Connecté au serveur socket.io");
+});
 
 socket.on("web_client_updated", (updated_datas) => {
+    if (!device) {
+        console.warn("⚠️ Device RNBO pas encore prêt");
+        return;
+    }
+
+    const now = device.context.currentTime; // 👈 audio clock RNBO
     for (const [key, value] of Object.entries(updated_datas)) {
-        client_datas[key] = value;
         console.log(`${key} mis à jour : ${value}`);
 
         switch (key) {
