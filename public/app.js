@@ -323,7 +323,7 @@ document.getElementById("adminBtn").addEventListener("click", () => {
 });
 
 // lance page d’accueil
-document.getElementById("homeBtn").click();
+// document.getElementById("homeBtn").click();
 
 
 document.getElementById("tracking-reset").addEventListener("click", () => {
