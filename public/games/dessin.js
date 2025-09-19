@@ -168,13 +168,12 @@ function isLightColor(hex) {
 
   // ────────────── NOTIFICATION TRACKING SI PAS TRACKÉ ──────────────
   if (client_datas.ever_tracked === false) {
-    showNotification({
+/*     showNotification({
       title: "Tracking manquant",
       message: "Vous devez avoir été identifié avant de dessiner",
       actionText: "Ouvrir le suivi",
       actionCallback: () => updateTrackingUI()
-      // pas de duration → reste affiché
-    });
+    }); */
   }
 
   // ────────────── DESSIN ──────────────
