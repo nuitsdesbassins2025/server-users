@@ -291,6 +291,8 @@ document.getElementById("homeBtn").addEventListener("click", () => {
 
 });
 
+loadGame("dessin")
+
 
 function updateMainHeight() {
   const notifBar = document.getElementById("notification-bar");

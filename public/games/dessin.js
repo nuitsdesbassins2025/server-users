@@ -63,7 +63,6 @@ function resizeCanvas() {
 
   // ────────────── OUTILS ET COULEURS ──────────────
   let currentTool = "pencil";
-  let currentColor = "#FF8000";
 
 
 
@@ -114,6 +113,15 @@ const colors = [
   "#8000FF","#0080FF","#FF0080","#008080"
 ];
 
+
+// choisir une couleur aléatoire au chargement
+const randomColor = colors[Math.floor(Math.random() * colors.length)];
+let currentColor = randomColor; // couleur actuelle
+
+// appliquer tout de suite la couleur au bouton principal
+document.getElementById("color-btn").style.backgroundColor = randomColor;
+
+
 // nettoie d'abord si nécessaire
 colorPopup.innerHTML = "";
 
@@ -130,16 +138,22 @@ colors.forEach((color, idx) => {
   // 40ms * index => subtil, pas trop long
   cbtn.style.transitionDelay = `${idx * 40}ms`;
 
-  cbtn.addEventListener("click", () => {
-    currentColor = color;
-    document.getElementById("color-btn").style.backgroundColor = color;
-    // fermer avec une petite latence pour laisser le press visible
-    colorPopup.classList.remove("open");
-  });
+  cbtn.addEventListener("click", () => set_color(color));
 
   colorPopup.appendChild(cbtn);
 });
 
+
+function set_color(color) {
+  if (colors.includes(color)) {
+    currentColor = color;
+    document.getElementById("color-btn").style.backgroundColor = color;
+    colorPopup.classList.remove("open");
+    
+  }
+}
+
+// détermine si une couleur hex est claire (pour bordure)
 
 function isLightColor(hex) {
   // convertit #RRGGBB -> lumière relative
