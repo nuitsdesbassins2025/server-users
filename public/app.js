@@ -20,7 +20,7 @@ if (localStorage.getItem("userId")) {
     actionText: "Amusez vous bien !",
     actionCallback: () => hideNotification()
   });
-  
+
 
 }
 
@@ -122,13 +122,7 @@ socket.on("web_client_updated", ( updated_datas ) => {
   }
 }
       if (!client_datas.pseudo) {
-      showNotification({
-        title: "Pseudo manquant",
-        message: "Enregistrez-vous pour débuter le jeu",
-        actionText: "Aller aux réglages",
-        actionCallback: () => loadGame("reglages")
-        // pas de duration → reste affiché
-      });
+        pass
 
   }
   return;
