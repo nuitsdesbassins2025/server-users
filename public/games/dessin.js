@@ -95,7 +95,6 @@ function resizeCanvas() {
   function reinitialize_shield() {
     console.log("shied_ready event received");
     shieldBtn.disabled = false;
-    textEl.textContent = "Bouclier actif ! Touche l'écran pour l'activer";
   }
 
   function trigger_shied() {

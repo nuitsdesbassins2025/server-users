@@ -18,6 +18,9 @@ body {
   font-family: sans-serif;
 }
 
+#settingsBtn {
+  background-color: #111;
+}
 
 
 canvas {
