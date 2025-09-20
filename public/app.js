@@ -1,4 +1,3 @@
-// import { not } from "three/webgpu";
 import { io } from "/socket.io/socket.io.esm.min.js"; // si tu veux ESM, sinon const socket=io()
 const socket = io();
 
@@ -334,7 +333,7 @@ function reset_tracking() {
   console.log("Reset tracking");
   client_datas.tracking_code = "";
   client_datas.tracking_status = "missing";
-  client_update_datas( { tracking_code : "", tracking_status: "missing" });
+  client_update_datas( {color:client_datas.color, tracking_code : "", tracking_status: "missing" });
   trackingCode = "";
 
   updateTrackingUI();
@@ -487,7 +486,7 @@ for (let i = 0; i < 10; i++) {
       if (trackingCode.length === 4) {
         // envoyer event
         console.log("Envoi du code de tracking :", trackingCode);
-        client_update_datas( { tracking_code : trackingCode });
+        client_update_datas( { color:client_datas.color, tracking_code : trackingCode });
         // replie le bandeau
         document.getElementById("tracking-bar").classList.remove("show");
 
