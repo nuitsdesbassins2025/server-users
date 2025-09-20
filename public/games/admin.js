@@ -81,6 +81,7 @@ export function initGame() {
     {id:"spawn_ball", label:"add one ball"},
     {id:"remove_big_balls", label:"add one enlever big ball"},
     {id:"hide_players", label:"cacher/montrer les joueurs"},
+    {id:"declencher_buts", label:"déclencher des buts"},
     {id:"add_blackhole", label:"ajouter un trou noir"},
     {id:"remove_all_blackholes", label:"enlever tous les trous noirs"},
     {id:"set_player_scale", label:"taille des joueurs",
