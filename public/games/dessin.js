@@ -183,6 +183,7 @@ function set_color(color) {
     currentColor = color;
     document.getElementById("color-btn").style.backgroundColor = color;
     colorPopup.classList.remove("open");
+    client_update_datas({ color: color });
     
   }
 }
