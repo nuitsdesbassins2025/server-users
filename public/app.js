@@ -39,7 +39,7 @@ function generateId() {
 // Données client
 let client_datas = {
   pseudo: null,
-  color: null,
+  color: "#FFFFFF",
   client_id,
   player_id: "",
   score: 0,
