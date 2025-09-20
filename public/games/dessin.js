@@ -1,4 +1,4 @@
-import { action_trigger, showNotification, updateTrackingUI, client_update_datas } from "/app.js";
+import { action_trigger, showNotification, updateTrackingUI, client_update_datas, set_color } from "/app.js";
 
 export function initGame(socket, client_datas) {
 
@@ -151,6 +151,7 @@ const colors = [
 // choisir une couleur aléatoire au chargement
 const randomColor = colors[Math.floor(Math.random() * colors.length)];
 let currentColor = randomColor; // couleur actuelle
+client_update_datas({ color: currentColor });
 
 // appliquer tout de suite la couleur au bouton principal
 document.getElementById("color-btn").style.backgroundColor = randomColor;
