@@ -76,6 +76,7 @@ export function initGame() {
   var buttons_needed = [
     {id:"grid_toogle", label:"Grille On/Off"},
     {id:"clear_drawings", label:"Effacer le dessin"},
+    {id:"clear_neons", label:"Effacer les néons"},
     {id:"clear_balls", label:"Effacer les balles"},
     {id:"reset_game", label:"Reset jeu"},
     {id:"spawn_ball", label:"add one ball"},
